@@ -1,70 +1,150 @@
-# Getting Started with Create React App
+# Penny Pilot - Personal Finance Copilot
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A comprehensive personal finance management application that helps you track, tag, and forecast your money across accounts and currencies. Penny Pilot is your personal finance copilot for analyzing spending, building budgets, and owning your financial future.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+### Core Functionality
+- **📊 Insights & Analytics** - Track trends, top categories, burn rate, and identify spending anomalies
+- **💰 Budget Management** - Create monthly, quarterly, or custom budgets with rollover capabilities
+- **🔮 Financial Forecasting** - Cashflow projections and scenario planning for better financial decisions
+- **🏷️ Smart Categorization** - Auto-tag transactions using flexible rules and AI-powered categorization
+- **🌍 Multi-Currency Support** - Track accounts in different currencies with live exchange rates
+- **👥 Access Control** - Invite partners or accountants with granular permission settings
+- **📁 Data Import** - Upload bank/credit card CSV files with customizable field mapping
+- **💳 IOU Tracking** - Manage splits, loans, and shared expenses with friends
+- **🔒 Data Security** - Encrypted backups and full data export capabilities
 
-### `npm start`
+### User Experience
+- **Responsive Design** - Modern, mobile-first interface built with Bootstrap 5
+- **Real-time Updates** - Live data synchronization across all devices
+- **Intuitive Dashboard** - Clean, organized interface for managing your financial life
+- **Dark/Light Themes** - Customizable appearance to match your preferences
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🛠️ Technology Stack
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Frontend**: React 19 with React Router for navigation
+- **Styling**: Bootstrap 5 with custom CSS modules
+- **Backend**: Firebase (Authentication, Firestore, Hosting)
+- **State Management**: React Context API for global state
+- **Build Tool**: Create React App with custom configuration
+- **Deployment**: Firebase Hosting with automatic builds
 
-### `npm test`
+## 📱 Application Structure
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+src/
+├── components/
+│   ├── app/           # Main application components
+│   │   ├── Dashboard/ # Dashboard shell and navigation
+│   │   ├── pages/     # Individual app pages (Insights, Budgets, etc.)
+│   │   └── common/    # Shared UI components
+│   ├── marketing/     # Marketing website components
+│   └── common/        # Cross-app shared components
+├── context/           # React Context providers
+├── routes/            # Route protection and layout components
+├── styles/            # Global styles and CSS modules
+├── utils/             # Utility functions and helpers
+└── content/           # Marketing copy and static content
+```
 
-### `npm run build`
+## 🚀 Getting Started
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn package manager
+- Firebase account and project
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Installation
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd penny-pilot-app
+   ```
 
-### `npm run eject`
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+3. **Environment Setup**
+   Create a `.env.local` file in the root directory with your Firebase configuration:
+   ```env
+   REACT_APP_FIREBASE_API_KEY=your_api_key
+   REACT_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+   REACT_APP_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+   REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   REACT_APP_FIREBASE_APP_ID=your_app_id
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+4. **Start the development server**
+   ```bash
+   npm start
+   ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+   The app will open at [http://localhost:3000](http://localhost:3000)
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 📋 Available Scripts
 
-## Learn More
+- **`npm start`** - Runs the app in development mode
+- **`npm test`** - Launches the test runner in interactive watch mode
+- **`npm run build`** - Builds the app for production to the `build` folder
+- **`npm run eject`** - Ejects from Create React App (one-way operation)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🏗️ Building for Production
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```bash
+npm run build
+```
 
-### Code Splitting
+The production build will be created in the `build/` directory, optimized for performance and ready for deployment.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 🚀 Deployment
 
-### Analyzing the Bundle Size
+This project is configured for Firebase Hosting. To deploy:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+1. **Build the project**
+   ```bash
+   npm run build
+   ```
 
-### Making a Progressive Web App
+2. **Deploy to Firebase**
+   ```bash
+   firebase deploy
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 🔧 Development
 
-### Advanced Configuration
+### Project Structure
+- **Components**: Modular React components with CSS modules
+- **Routing**: Protected routes with authentication guards
+- **State Management**: Context API for global state (Auth, Profile)
+- **Styling**: Bootstrap 5 with custom CSS modules for component-specific styles
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Key Components
+- **Dashboard**: Main application shell with sidebar navigation
+- **Protected Routes**: Authentication-based route protection
+- **Marketing Site**: Public-facing marketing pages
+- **App Pages**: Core application functionality (Insights, Budgets, Forecast, etc.)
 
-### Deployment
+## 🤝 Contributing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-### `npm run build` fails to minify
+## 📄 License
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project is private and proprietary. All rights reserved.
+
+## 📞 Support
+
+For support and demo requests, please visit the application or contact the development team.
+
+---
+
+**Penny Pilot** - Your personal finance copilot for a brighter financial future. 💰✨
