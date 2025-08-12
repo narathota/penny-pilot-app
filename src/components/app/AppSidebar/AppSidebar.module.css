@@ -1,0 +1,29 @@
+.wrap {
+  min-height: calc(100vh - 56px);
+  border-right: 1px solid var(--bs-border-color);
+  width: 240px;
+}
+
+.link { border-radius: var(--bs-border-radius); }
+
+.link.active {
+  background-color: rgba(var(--pp-primary-rgb), 0.12);
+  color: var(--bs-body-color);
+  font-weight: 600;
+}
+
+.link.disabled {
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+/* When rendered inside offcanvas, stretch and drop right border */
+.offcanvas .wrap {
+  width: 100%;
+  min-height: auto;
+  border-right: none;
+}
+
+@media (max-width: 991.98px) {
+  .wrap { width: 100%; }
+}

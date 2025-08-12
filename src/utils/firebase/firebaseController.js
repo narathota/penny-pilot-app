@@ -1,69 +1,130 @@
-
 import { initializeApp } from "firebase/app";
-import { getFirestore, addDoc, collection, onSnapshot, orderBy, query } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import {
+  getAuth, setPersistence, browserLocalPersistence, GoogleAuthProvider,
+  signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged,
+} from "firebase/auth";
+import { getFirestore, setDoc, doc, serverTimestamp } from "firebase/firestore";
 
-// Firebase configuration from environment variables
-const firebaseConfig = {
-    apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-    authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.REACT_APP_FIREBASE_APP_ID,
-    measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
-};
+let _app = null, _auth = null, _db = null;
+let _ready = false;
+let _reason = "";
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+/* ------------ Read ONLY REACT_APP_FB_* vars ------------ */
+function env(k) {
+  const v = process.env[k];
+  return v && String(v).trim() !== "" ? String(v).trim() : "";
+}
+function cfgVal(name) {
+  return env(`REACT_APP_FB_${name}`);
+}
+function validateEnv() {
+  const required = ["API_KEY", "AUTH_DOMAIN", "PROJECT_ID", "APP_ID"];
+  const missing = required.filter(n => !cfgVal(n)).map(n => `REACT_APP_FB_${n}`);
+  if (missing.length) {
+    _reason = `Missing env vars: ${missing.join(", ")}`;
+    return false;
+  }
+  return true;
+}
 
-// --- Firestore Utility Functions ---
+/* ------------ Lazy/safe init ------------ */
+function initIfNeeded() {
+  if (_ready) return true;
+  if (!validateEnv()) return false;
 
+  const cfg = {
+    apiKey: cfgVal("API_KEY"),
+    authDomain: cfgVal("AUTH_DOMAIN"),
+    projectId: cfgVal("PROJECT_ID"),
+    storageBucket: cfgVal("STORAGE_BUCKET") || undefined,
+    messagingSenderId: cfgVal("MESSAGING_SENDER_ID") || undefined,
+    appId: cfgVal("APP_ID"),
+    measurementId: cfgVal("MEASUREMENT_ID") || undefined,
+  };
 
-/**
- * Fetches real-time data from a Firestore collection.
- * @param {string} collectionName - Name of the Firestore collection.
- * @param {function} setDataCallback - Callback to set data in state.
- * @param {string|null} orderByField - Field to order by (optional).
- * @param {string|null} filterByField - Field to filter by (optional, expects boolean true).
- * @returns {function} Unsubscribe function for the snapshot listener.
- */
-export const fetchFirestoreData = (collectionName, setDataCallback, orderByField = null, filterByField = null) => {
-    let dataQuery = collection(db, collectionName);
-    if (orderByField) {
-        dataQuery = query(dataQuery, orderBy(orderByField));
+  try {
+    _app = initializeApp(cfg);
+    _auth = getAuth(_app);
+    _db = getFirestore(_app);
+    setPersistence(_auth, browserLocalPersistence);
+    _ready = true;
+    _reason = "";
+    return true;
+  } catch (e) {
+    _reason = e?.message || "Firebase init failed";
+    _ready = false;
+    _app = _auth = _db = null;
+    return false;
+  }
+}
+
+/* ------------ Public API ------------ */
+export function getFirebase() {
+  return { app: _app, auth: _auth, db: _db, ready: initIfNeeded(), reason: _reason };
+}
+
+function isMobileUA() { return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
+
+export async function loginWithGoogle() {
+  const { auth, ready, reason } = getFirebase();
+  if (!ready) throw new Error(`Firebase not configured: ${reason}`);
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+
+  if (isMobileUA()) {
+    await signInWithRedirect(auth, provider);
+    return { method: "redirect" };
+  }
+  try {
+    const cred = await signInWithPopup(auth, provider);
+    await writeAppUser(cred.user);
+    return { method: "popup", user: cred.user };
+  } catch (err) {
+    if (err?.code === "auth/popup-blocked" || err?.code === "auth/popup-closed-by-user") {
+      await signInWithRedirect(auth, provider);
+      return { method: "redirect" };
     }
-    return onSnapshot(
-        dataQuery,
-        (snapshot) => {
-            const data = snapshot.docs
-                .map((doc) => ({ id: doc.id, ...doc.data() }))
-                .filter((item) => (filterByField ? item[filterByField] === true : true));
-            setDataCallback(data);
-        },
-        (error) => {
-            console.error(`Firestore Error [${collectionName}]:`, error);
-        }
-    );
-};
+    throw err;
+  }
+}
 
-/**
- * Uploads an array of data to a Firestore collection.
- * @param {string} collectionName - Name of the Firestore collection.
- * @param {Array<Object>} data - Array of objects to upload.
- */
-export const uploadCSVDataToFirestore = async (collectionName, data) => {
-    try {
-        const collectionRef = collection(db, collectionName);
-        await Promise.all(data.map((item) => addDoc(collectionRef, item)));
-        console.log(`✅ Data successfully uploaded to Firestore (${collectionName}).`);
-    } catch (error) {
-        console.error("🔥 Firestore Upload Error:", error);
-        throw error;
-    }
-};
+export async function handleAuthRedirect() {
+  const { auth, ready } = getFirebase();
+  if (!ready) return null;
+  const res = await getRedirectResult(auth);
+  if (res?.user) { await writeAppUser(res.user); return res.user; }
+  return null;
+}
 
-// --- Export Firebase App, Auth, and DB ---
-export { app, db, auth };
+export function onAuthChangedSafe(cb) {
+  const { auth, ready } = getFirebase();
+  if (!ready) { setTimeout(() => cb(null), 0); return () => {}; }
+  return onAuthStateChanged(auth, cb);
+}
+
+export async function logoutUser() {
+  const { auth, ready } = getFirebase();
+  if (!ready) return;
+  await signOut(auth);
+}
+
+export async function writeAppUser(user) {
+  const { db, ready } = getFirebase();
+  if (!ready || !user?.uid) return;
+  await setDoc(
+    doc(db, "app_users", user.uid),
+    {
+      uid: user.uid,
+      email: user.email || null,
+      displayName: user.displayName || null,
+      photoURL: user.photoURL || null,
+      providerId: user.providerData?.[0]?.providerId || "google.com",
+      lastLoginAt: serverTimestamp(),
+      createdAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
+
+export function isFirebaseReady() { return initIfNeeded(); }
+export function notReadyReason() { return _reason; }
