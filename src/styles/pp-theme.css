@@ -1,0 +1,276 @@
+/* Pocket Penny – App Theme (Bootstrap 5.3+)
+   ------------------------------------------------------------
+   - Brand: Emerald primary, Violet secondary
+   - Light/Dark via [data-bs-theme="light" | "dark"]
+   - Google Fonts: Inter + JetBrains Mono
+*/
+
+/* Quick font import (you can move to <link> tags in index.html for perf) */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap");
+
+/* ====== Brand Tokens (shared) ========================================= */
+:root {
+  /* Brand palette (money vibes) */
+  --pp-primary: #10b981;               /* emerald-500 */
+  --pp-primary-rgb: 16, 185, 129;
+  --pp-primary-600: #059669;           /* hover */
+  --pp-primary-700: #047857;           /* active */
+
+  --pp-secondary: #7c3aed;             /* violet-600 */
+  --pp-secondary-rgb: 124, 58, 237;
+  --pp-secondary-600: #6d28d9;
+
+  --pp-success: #22c55e;
+  --pp-info: #0ea5e9;
+  --pp-warning: #f59e0b;
+  --pp-danger: #ef4444;
+
+  /* Typography */
+  --pp-font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+                   Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
+                   "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --pp-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+                  Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Radius & shadows */
+  --pp-radius: 0.75rem;        /* 12px */
+  --pp-radius-lg: 1rem;        /* 16px */
+  --pp-radius-xl: 1.25rem;     /* 20px */
+  --pp-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --pp-shadow:    0 10px 30px rgba(0, 0, 0, 0.10);
+  --pp-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.14);
+
+  /* Used by your hero gradient */
+  --pp-secondary: #7c3aed;
+}
+
+/* ====== Bootstrap Variable Overrides – Light ========================== */
+:root,
+[data-bs-theme="light"] {
+  /* Fonts */
+  --bs-body-font-family: var(--pp-font-sans);
+  --bs-font-monospace: var(--pp-font-mono);
+
+  /* Colors */
+  --bs-primary: var(--pp-primary);
+  --bs-primary-rgb: var(--pp-primary-rgb);
+  --bs-secondary: var(--pp-secondary);
+  --bs-secondary-rgb: var(--pp-secondary-rgb);
+  --bs-success: var(--pp-success);
+  --bs-info: var(--pp-info);
+  --bs-warning: var(--pp-warning);
+  --bs-danger: var(--pp-danger);
+
+  --bs-body-bg: #ffffff;
+  --bs-body-color: #101827; /* slate-900-ish for strong contrast */
+  --bs-secondary-color: #6b7280; /* slate-500 */
+  --bs-tertiary-bg: #f6f7f9;
+  --bs-border-color: #e5e7eb; /* slate-200 */
+
+  /* Links */
+  --bs-link-color: var(--pp-primary);
+  --bs-link-hover-color: #0fa971;
+
+  /* Radius */
+  --bs-border-radius: var(--pp-radius);
+  --bs-border-radius-sm: calc(var(--pp-radius) - 0.25rem);
+  --bs-border-radius-lg: var(--pp-radius-lg);
+  --bs-border-radius-xl: var(--pp-radius-xl);
+
+  /* Focus ring */
+  --bs-focus-ring-color: rgba(var(--pp-primary-rgb), 0.3);
+}
+
+/* ====== Bootstrap Variable Overrides – Dark =========================== */
+[data-bs-theme="dark"] {
+  --bs-body-bg: #0f1115;     /* deep slate */
+  --bs-body-color: #e7e9ee;  /* near-white */
+  --bs-secondary-color: #a3aab8;
+  --bs-tertiary-bg: #151922;
+  --bs-border-color: rgba(255, 255, 255, 0.08);
+
+  /* Links still emerald but slightly brighter on hover */
+  --bs-link-color: #34d399;          /* emerald-400 */
+  --bs-link-hover-color: #10b981;
+
+  /* Component backgrounds */
+  --bs-card-bg: #10141c;
+  --bs-dropdown-bg: #0f131b;
+  --bs-modal-bg: #10141c;
+}
+
+/* ====== Global Element Polish ======================================== */
+::selection {
+  background: rgba(var(--pp-primary-rgb), 0.18);
+}
+
+html, body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3 {
+  letter-spacing: 0.01em;
+}
+
+.lead { color: var(--bs-secondary-color); }
+
+/* Subtle max container width bump for large screens */
+@media (min-width: 1400px) {
+  .container { max-width: 1160px; }
+}
+
+/* ====== Buttons ======================================================= */
+.btn {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-width: 1px;
+  border-radius: var(--pp-radius);
+  box-shadow: none;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--pp-primary);
+  --bs-btn-border-color: var(--pp-primary);
+  --bs-btn-hover-bg: var(--pp-primary-600);
+  --bs-btn-hover-border-color: var(--pp-primary-600);
+  --bs-btn-active-bg: var(--pp-primary-700);
+  --bs-btn-active-border-color: var(--pp-primary-700);
+  --bs-btn-focus-shadow-rgb: var(--pp-primary-rgb);
+  box-shadow: 0 6px 18px rgba(var(--pp-primary-rgb), 0.25);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--pp-primary);
+  --bs-btn-border-color: rgba(var(--pp-primary-rgb), 0.6);
+  --bs-btn-hover-bg: rgba(var(--pp-primary-rgb), 0.08);
+  --bs-btn-hover-color: var(--pp-primary-700);
+  --bs-btn-active-bg: rgba(var(--pp-primary-rgb), 0.16);
+  --bs-btn-focus-shadow-rgb: var(--pp-primary-rgb);
+}
+
+/* Secondary buttons lean modern-violet */
+.btn-secondary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--pp-secondary);
+  --bs-btn-border-color: var(--pp-secondary);
+  --bs-btn-hover-bg: var(--pp-secondary-600);
+  --bs-btn-hover-border-color: var(--pp-secondary-600);
+  --bs-btn-focus-shadow-rgb: var(--pp-secondary-rgb);
+}
+
+/* Button size tune */
+.btn-lg { border-radius: var(--pp-radius-lg); padding: 0.75rem 1.25rem; }
+.btn-sm { border-radius: calc(var(--pp-radius) - 0.25rem); }
+
+/* ====== Navbar ======================================================== */
+.navbar {
+  --bs-navbar-padding-y: .75rem;
+  --bs-navbar-brand-font-size: 1.075rem;
+  box-shadow: 0 1px 0 var(--bs-border-color);
+}
+
+.navbar .navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.navbar .nav-link {
+  font-weight: 500;
+  color: var(--bs-secondary-color);
+}
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+  color: var(--bs-body-color);
+}
+
+/* ====== Cards, Shadows & Surfaces ==================================== */
+.card, .modal-content, .dropdown-menu, .offcanvas, .list-group-item {
+  border-radius: var(--pp-radius);
+}
+
+.card {
+  border: 1px solid var(--bs-border-color);
+  box-shadow: var(--pp-shadow-sm);
+}
+
+.card:hover {
+  box-shadow: var(--pp-shadow);
+}
+
+/* ====== Forms ========================================================= */
+.form-control, .form-select {
+  border-radius: var(--pp-radius);
+  border-color: var(--bs-border-color);
+}
+
+.form-control:focus, .form-select:focus, .form-check-input:focus {
+  border-color: var(--pp-primary);
+  box-shadow: 0 0 0 0.2rem rgba(var(--pp-primary-rgb), 0.25);
+}
+
+/* Input heights feel nicer a bit larger */
+.form-control, .form-select { padding-top: .55rem; padding-bottom: .55rem; }
+
+/* Checkboxes & radios accent */
+.form-check-input:checked {
+  background-color: var(--pp-primary);
+  border-color: var(--pp-primary);
+}
+
+/* ====== Dropdowns ===================================================== */
+.dropdown-menu {
+  box-shadow: var(--pp-shadow);
+  border-color: var(--bs-border-color);
+}
+.dropdown-item.active, .dropdown-item:active {
+  background-color: rgba(var(--pp-primary-rgb), 0.12);
+  color: var(--bs-body-color);
+}
+
+/* ====== Tables ======================================================== */
+.table {
+  --bs-table-striped-bg: rgba(0, 0, 0, 0.02);
+  --bs-table-hover-bg: rgba(0, 0, 0, 0.03);
+  border-color: var(--bs-border-color);
+}
+[data-bs-theme="dark"] .table {
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.05);
+}
+
+/* ====== Badges & Alerts ============================================== */
+.badge {
+  border-radius: 999px;
+  font-weight: 600;
+  padding: .4rem .6rem;
+}
+.alert-primary {
+  --bs-alert-color: #064e3b;
+  --bs-alert-bg: #d1fae5;
+  --bs-alert-border-color: #a7f3d0;
+}
+
+/* ====== Footer & Small Accents ======================================= */
+footer {
+  background-image: linear-gradient(180deg, transparent, rgba(0,0,0,0.03));
+}
+
+/* Nice subtle scrollbar (webkit) */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.35);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+[data-bs-theme="dark"] *::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+}
