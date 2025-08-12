@@ -11,6 +11,6 @@
       "withLazy": false
     }
   },
-  "usesCssModule": false,
+  "usesCssModule": true,
   "cssPreprocessor": "css"
 }

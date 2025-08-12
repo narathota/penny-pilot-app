@@ -1,25 +1,42 @@
-import logo from './logo.svg';
-import './App.css';
+// FILE: src/App.js
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-function App() {
+import { AuthProvider } from "./context/AuthContext";
+import { ProfileProvider } from "./context/ProfileContext";
+
+import MarketingHome from "./components/marketing/MarketingHome/MarketingHome";
+import PrivacyPage from "./components/marketing/PrivacyPage/PrivacyPage";
+import TermsPage from "./components/marketing/TermsPage/TermsPage";
+import ProtectedRoute from "./routes/ProtectedRoute/ProtectedRoute";
+import Dashboard from "./components/app/Dashboard/Dashboard";
+
+import "./App.css";
+
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthProvider>
+      <ProfileProvider>
+        <Routes>
+          {/* Marketing site */}
+          <Route path="/" element={<MarketingHome />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+
+          {/* App (auth-protected) */}
+          <Route
+            path="/ppapp/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </ProfileProvider>
+    </AuthProvider>
   );
 }
-
-export default App;

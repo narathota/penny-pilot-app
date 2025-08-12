@@ -1,0 +1,9 @@
+/* FILE: src/components/marketing/FeaturesSection/FeaturesSection.module.css */
+.cards .feature {
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius-lg);
+    background: var(--bs-body-bg);
+    padding: 20px;
+    height: 100%;
+  }
+  

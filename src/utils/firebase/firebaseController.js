@@ -1,69 +1,66 @@
-
+// FILE: src/utils/firebase/firebaseController.js
 import { initializeApp } from "firebase/app";
-import { getFirestore, addDoc, collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-// Firebase configuration from environment variables
-const firebaseConfig = {
-    apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-    authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.REACT_APP_FIREBASE_APP_ID,
-    measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
-};
+let _app = null;
+let _db = null;
+let _auth = null;
+let _ready = false;
+let _reason = "";
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+function env(name) {
+  return process.env[name];
+}
 
-// --- Firestore Utility Functions ---
+function validateEnv() {
+  const needed = [
+    "REACT_APP_FIREBASE_API_KEY",
+    "REACT_APP_FIREBASE_AUTH_DOMAIN",
+    "REACT_APP_FIREBASE_PROJECT_ID",
+    "REACT_APP_FIREBASE_STORAGE_BUCKET",
+    "REACT_APP_FIREBASE_MESSAGING_SENDER_ID",
+    "REACT_APP_FIREBASE_APP_ID",
+  ];
 
+  const missing = needed.filter((k) => !env(k));
+  if (missing.length) {
+    _reason = `Missing env vars: ${missing.join(", ")}`;
+    return false;
+  }
 
-/**
- * Fetches real-time data from a Firestore collection.
- * @param {string} collectionName - Name of the Firestore collection.
- * @param {function} setDataCallback - Callback to set data in state.
- * @param {string|null} orderByField - Field to order by (optional).
- * @param {string|null} filterByField - Field to filter by (optional, expects boolean true).
- * @returns {function} Unsubscribe function for the snapshot listener.
- */
-export const fetchFirestoreData = (collectionName, setDataCallback, orderByField = null, filterByField = null) => {
-    let dataQuery = collection(db, collectionName);
-    if (orderByField) {
-        dataQuery = query(dataQuery, orderBy(orderByField));
-    }
-    return onSnapshot(
-        dataQuery,
-        (snapshot) => {
-            const data = snapshot.docs
-                .map((doc) => ({ id: doc.id, ...doc.data() }))
-                .filter((item) => (filterByField ? item[filterByField] === true : true));
-            setDataCallback(data);
-        },
-        (error) => {
-            console.error(`Firestore Error [${collectionName}]:`, error);
-        }
-    );
-};
+  const key = env("REACT_APP_FIREBASE_API_KEY");
+  // Quick sanity check; real keys start with AIza and length ~39
+  const looksRight = typeof key === "string" && /^AIza[0-9A-Za-z_\-]{35}$/.test(key);
+  if (!looksRight) {
+    _reason = "Invalid REACT_APP_FIREBASE_API_KEY format (looks missing or placeholder).";
+    return false;
+  }
+  return true;
+}
 
-/**
- * Uploads an array of data to a Firestore collection.
- * @param {string} collectionName - Name of the Firestore collection.
- * @param {Array<Object>} data - Array of objects to upload.
- */
-export const uploadCSVDataToFirestore = async (collectionName, data) => {
-    try {
-        const collectionRef = collection(db, collectionName);
-        await Promise.all(data.map((item) => addDoc(collectionRef, item)));
-        console.log(`✅ Data successfully uploaded to Firestore (${collectionName}).`);
-    } catch (error) {
-        console.error("🔥 Firestore Upload Error:", error);
-        throw error;
-    }
-};
+export function getFirebase() {
+  if (_ready) return { app: _app, db: _db, auth: _auth, ready: true };
 
-// --- Export Firebase App, Auth, and DB ---
-export { app, db, auth };
+  if (!validateEnv()) {
+    console.warn(`[PocketPenny] Firebase not ready: ${_reason}`);
+    return { ready: false, reason: _reason };
+  }
+
+  const firebaseConfig = {
+    apiKey: env("REACT_APP_FIREBASE_API_KEY"),
+    authDomain: env("REACT_APP_FIREBASE_AUTH_DOMAIN"),
+    projectId: env("REACT_APP_FIREBASE_PROJECT_ID"),
+    storageBucket: env("REACT_APP_FIREBASE_STORAGE_BUCKET"),
+    messagingSenderId: env("REACT_APP_FIREBASE_MESSAGING_SENDER_ID"),
+    appId: env("REACT_APP_FIREBASE_APP_ID"),
+    measurementId: env("REACT_APP_FIREBASE_MEASUREMENT_ID"),
+  };
+
+  _app = initializeApp(firebaseConfig);
+  _db = getFirestore(_app);
+  _auth = getAuth(_app);
+  _ready = true;
+
+  return { app: _app, db: _db, auth: _auth, ready: true };
+}
