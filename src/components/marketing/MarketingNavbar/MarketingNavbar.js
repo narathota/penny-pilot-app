@@ -18,8 +18,19 @@ export default function MarketingNavbar() {
     <header className="sticky-top border-bottom">
       <nav className="navbar navbar-expand-lg bg-body-tertiary" aria-label="Main navigation">
         <div className="container">
-          <Link className="navbar-brand d-flex align-items-center gap-2" to="/">
-            <span className={styles.logoDot} aria-hidden>●</span>
+          <Link
+            className={`navbar-brand d-flex align-items-center ${styles.brand}`}
+            to="/"
+            aria-label="Pocket Penny — Home"
+          >
+            <img
+              src="/pp-logo.png"
+              alt=""
+              className={styles.logoImg}
+              height={28}
+              width={28}
+              aria-hidden="true"
+            />
             <span className="fw-bold">Pocket&nbsp;Penny</span>
           </Link>
 

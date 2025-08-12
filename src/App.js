@@ -1,11 +1,10 @@
 // FILE: src/App.js
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-
 import { AuthProvider } from "./context/AuthContext";
 import { ProfileProvider } from "./context/ProfileContext";
 
-import MarketingHome from "./components/marketing/MarketingHome/MarketingHome";
+import MarketingHome from "./components/marketing/MarketingHome/MarketingHome"; // or ./routes/MarketingHome/MarketingHome
 import PrivacyPage from "./components/marketing/PrivacyPage/PrivacyPage";
 import TermsPage from "./components/marketing/TermsPage/TermsPage";
 import ProtectedRoute from "./routes/ProtectedRoute/ProtectedRoute";
@@ -18,22 +17,20 @@ export default function App() {
     <AuthProvider>
       <ProfileProvider>
         <Routes>
-          {/* Marketing site */}
           <Route path="/" element={<MarketingHome />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
 
-          {/* App (auth-protected) */}
           <Route
-            path="/ppapp/dashboard"
+            path="/app/dashboard"
             element={
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>
             }
           />
+          <Route path="/ppapp/dashboard" element={<Navigate to="/app/dashboard" replace />} />
 
-          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </ProfileProvider>

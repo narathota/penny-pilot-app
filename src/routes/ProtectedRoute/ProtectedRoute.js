@@ -7,7 +7,8 @@ export default function ProtectedRoute({ children }) {
   const { user, initializing } = useAuth();
   const location = useLocation();
 
-  if (initializing) return null; // TODO: replace with a spinner if you want
-  if (!user) return <Navigate to="/" state={{ from: location }} replace />;
+  if (initializing) return null;
+  if (!user)
+    return <Navigate to="/404" state={{ from: location, reason: "auth" }} replace />;
   return children;
 }
