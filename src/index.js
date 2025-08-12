@@ -11,6 +11,10 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 // import "./styles/theme-overrides.css";
 import "./styles/pp-theme.css";
 
+// add this as the first import
+import "./utils/theme/initTheme";
+
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <BrowserRouter>

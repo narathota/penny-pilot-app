@@ -1,4 +1,3 @@
-// FILE: src/utils/firebase/firebaseController.js
 import { initializeApp } from "firebase/app";
 import {
   getAuth, setPersistence, browserLocalPersistence, GoogleAuthProvider,
@@ -10,16 +9,17 @@ let _app = null, _auth = null, _db = null;
 let _ready = false;
 let _reason = "";
 
-/* ------------ Env validation (relaxed) ------------ */
-function env(k) { return process.env[k]; }
+/* ------------ Read ONLY REACT_APP_FB_* vars ------------ */
+function env(k) {
+  const v = process.env[k];
+  return v && String(v).trim() !== "" ? String(v).trim() : "";
+}
+function cfgVal(name) {
+  return env(`REACT_APP_FB_${name}`);
+}
 function validateEnv() {
-  const required = [
-    "REACT_APP_FIREBASE_API_KEY",
-    "REACT_APP_FIREBASE_AUTH_DOMAIN",
-    "REACT_APP_FIREBASE_PROJECT_ID",
-    "REACT_APP_FIREBASE_APP_ID",
-  ];
-  const missing = required.filter(k => !env(k) || String(env(k)).trim() === "");
+  const required = ["API_KEY", "AUTH_DOMAIN", "PROJECT_ID", "APP_ID"];
+  const missing = required.filter(n => !cfgVal(n)).map(n => `REACT_APP_FB_${n}`);
   if (missing.length) {
     _reason = `Missing env vars: ${missing.join(", ")}`;
     return false;
@@ -27,19 +27,19 @@ function validateEnv() {
   return true;
 }
 
-/* ------------ Init (lazy; safe) ------------ */
+/* ------------ Lazy/safe init ------------ */
 function initIfNeeded() {
   if (_ready) return true;
   if (!validateEnv()) return false;
 
   const cfg = {
-    apiKey: env("REACT_APP_FIREBASE_API_KEY"),
-    authDomain: env("REACT_APP_FIREBASE_AUTH_DOMAIN"),
-    projectId: env("REACT_APP_FIREBASE_PROJECT_ID"),
-    storageBucket: env("REACT_APP_FIREBASE_STORAGE_BUCKET"),
-    messagingSenderId: env("REACT_APP_FIREBASE_MESSAGING_SENDER_ID"),
-    appId: env("REACT_APP_FIREBASE_APP_ID"),
-    measurementId: env("REACT_APP_FIREBASE_MEASUREMENT_ID"),
+    apiKey: cfgVal("API_KEY"),
+    authDomain: cfgVal("AUTH_DOMAIN"),
+    projectId: cfgVal("PROJECT_ID"),
+    storageBucket: cfgVal("STORAGE_BUCKET") || undefined,
+    messagingSenderId: cfgVal("MESSAGING_SENDER_ID") || undefined,
+    appId: cfgVal("APP_ID"),
+    measurementId: cfgVal("MEASUREMENT_ID") || undefined,
   };
 
   try {
@@ -58,13 +58,13 @@ function initIfNeeded() {
   }
 }
 
+/* ------------ Public API ------------ */
 export function getFirebase() {
   return { app: _app, auth: _auth, db: _db, ready: initIfNeeded(), reason: _reason };
 }
 
 function isMobileUA() { return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
 
-/** Login with Google (popup desktop, redirect mobile/popup-block) */
 export async function loginWithGoogle() {
   const { auth, ready, reason } = getFirebase();
   if (!ready) throw new Error(`Firebase not configured: ${reason}`);
@@ -88,7 +88,6 @@ export async function loginWithGoogle() {
   }
 }
 
-/** Complete redirect flow if present */
 export async function handleAuthRedirect() {
   const { auth, ready } = getFirebase();
   if (!ready) return null;
@@ -97,21 +96,18 @@ export async function handleAuthRedirect() {
   return null;
 }
 
-/** Subscribe to auth state (safe) */
 export function onAuthChangedSafe(cb) {
   const { auth, ready } = getFirebase();
   if (!ready) { setTimeout(() => cb(null), 0); return () => {}; }
   return onAuthStateChanged(auth, cb);
 }
 
-/** Logout */
 export async function logoutUser() {
   const { auth, ready } = getFirebase();
   if (!ready) return;
   await signOut(auth);
 }
 
-/** Upsert app_users/{uid} with lastLoginAt */
 export async function writeAppUser(user) {
   const { db, ready } = getFirebase();
   if (!ready || !user?.uid) return;

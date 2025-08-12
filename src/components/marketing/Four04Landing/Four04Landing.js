@@ -10,10 +10,9 @@ export default function Four04Landing() {
   const navigate = useNavigate();
   const { user, loginWithGoogle } = useAuth();
 
-  // reason: "auth" when redirected by ProtectedRoute, default "404"
   const reason =
     location.state?.reason ||
-    (location.pathname.startsWith("/ppapp") && !user ? "auth" : "404");
+    (location.pathname.startsWith("/app") && !user ? "auth" : "404");
 
   const fromPath = location.state?.from?.pathname || null;
 
@@ -26,10 +25,10 @@ export default function Four04Landing() {
   const handleLogin = async () => {
     try {
       await loginWithGoogle();
-      const dest = fromPath || "/ppapp/dashboard";
+      const dest = fromPath || "/app/dashboard";
       navigate(dest, { replace: true });
     } catch (err) {
-      // no-op: Auth popup closed / blocked; you can toast here if needed
+      // If popup closed/blocked, your AuthContext will handle redirect fallback
       console.warn("Login aborted:", err?.message || err);
     }
   };
