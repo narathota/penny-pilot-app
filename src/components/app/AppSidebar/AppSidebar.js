@@ -11,6 +11,7 @@ import {
   faTags,             // Tags
   faFileArrowUp,      // Upload Data
   faGear,             // Settings
+  faDatabase,             // DataManagementAdminPage
 } from "@fortawesome/free-solid-svg-icons";
 import styles from "./AppSidebar.module.css";
 
@@ -24,6 +25,7 @@ const items = [
   { to: "/app/tags",      label: "Tags",        icon: faTags },
   { to: "/app/upload",    label: "Upload Data", icon: faFileArrowUp },
   { to: "/app/settings",  label: "Settings",    icon: faGear },
+  { to: "/app/datamgt",  label: "Data Management",    icon: faDatabase },
 ];
 
 export default function AppSidebar({ insideOffcanvas = false }) {
