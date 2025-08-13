@@ -4,7 +4,9 @@
   width: 240px;
 }
 
-.link { border-radius: var(--bs-border-radius); }
+.link {
+  border-radius: var(--bs-border-radius);
+}
 
 .link.active {
   background-color: rgba(var(--pp-primary-rgb), 0.12);
@@ -17,7 +19,6 @@
   opacity: 0.9;
 }
 
-/* When rendered inside offcanvas, stretch and drop right border */
 .offcanvas .wrap {
   width: 100%;
   min-height: auto;
@@ -25,5 +26,25 @@
 }
 
 @media (max-width: 991.98px) {
-  .wrap { width: 100%; }
+  .wrap {
+    width: 100%;
+  }
+}
+
+/* keep your existing rules … */
+.icon {
+  width: 1.25rem;
+  /* ~20px */
+  height: 1.25rem;
+  flex: 0 0 auto;
+  opacity: .9;
+  margin-right: 10px;
+}
+
+.link:hover .icon {
+  opacity: 1;
+}
+
+.customheight {
+  height: 100%;
 }
