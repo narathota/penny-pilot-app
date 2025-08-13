@@ -1,0 +1,15 @@
+.tagList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  
+  .removeIcon {
+    margin-left: 0.25rem;
+    cursor: pointer;
+  }
+  
+  .removeIcon:hover {
+    color: var(--bs-danger);
+  }
+  

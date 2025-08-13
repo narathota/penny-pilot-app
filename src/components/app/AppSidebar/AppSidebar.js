@@ -50,7 +50,7 @@ export default function AppSidebar({ insideOffcanvas = false }) {
   }, [insideOffcanvas, navigate]);
 
   return (
-    <aside className={`${styles.wrap} bg-body ${styles.customheight} `}>
+    <aside className={`${styles.wrap} bg-body`}>
       <div className="p-3">
         <div className="text-uppercase text-secondary small fw-bold mb-2">Navigation</div>
         <ul className="nav nav-pills flex-column gap-1">

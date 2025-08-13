@@ -1,7 +1,8 @@
 .wrap {
   min-height: calc(100vh - 56px);
   border-right: 1px solid var(--bs-border-color);
-  width: 240px;
+  width: 180px;
+  height: 100%;
 }
 
 .link {
@@ -41,8 +42,3 @@
   vertical-align: -2px; /* subtle optical alignment */
 }
 .link:hover .icon { opacity: 1; }
-
-
-.customheight {
-  height: 100%;
-}
