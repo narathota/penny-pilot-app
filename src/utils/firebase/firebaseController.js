@@ -65,6 +65,7 @@ export function getFirebase() { return { app: _app, auth: _auth, db: _db, ready:
 
 function isMobileUA() { return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
 
+// Removed the isMobileUA() check. The code will now always attempt signInWithPopup first.
 export async function loginWithGoogle() {
   const { auth, ready, reason } = getFirebase();
   if (!ready) throw new Error(`Firebase not configured: ${reason}`);
@@ -73,15 +74,13 @@ export async function loginWithGoogle() {
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: "select_account" });
 
-  if (isMobileUA()) {
-    await signInWithRedirect(auth, provider);
-    return { method: "redirect" };
-  }
   try {
+    // Attempt pop-up login on all platforms
     const cred = await signInWithPopup(auth, provider);
     await writeAppUser(cred.user);
     return { method: "popup", user: cred.user };
   } catch (err) {
+    // If pop-up is blocked or fails, fall back to redirect method
     if (err?.code === "auth/popup-blocked" || err?.code === "auth/popup-closed-by-user") {
       await signInWithRedirect(auth, provider);
       return { method: "redirect" };
