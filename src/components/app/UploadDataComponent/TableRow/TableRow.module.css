@@ -1,15 +1,78 @@
-.tagList {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-  }
-  
-  .removeIcon {
-    margin-left: 0.25rem;
-    cursor: pointer;
-  }
-  
-  .removeIcon:hover {
-    color: var(--bs-danger);
-  }
-  
+.cell {
+  vertical-align: middle;
+}
+
+.tagWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .35rem .5rem;
+  background-color: var(--bs-secondary-bg);
+  color: var(--bs-body-color);
+  border: 1px solid var(--bs-border-color);
+}
+
+.tagText {
+  line-height: 1;
+}
+
+.tagRemove {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--bs-danger);
+  padding: 0;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.tagRemove:hover {
+  filter: brightness(1.1);
+}
+.cell {
+  vertical-align: middle;
+}
+
+.tagWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .35rem .5rem;
+  background-color: var(--bs-secondary-bg);
+  color: var(--bs-body-color);
+  border: 1px solid var(--bs-border-color);
+}
+
+.tagText {
+  line-height: 1;
+}
+
+.tagRemove {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--bs-danger);
+  padding: 0;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.tagRemove:hover {
+  filter: brightness(1.1);
+}

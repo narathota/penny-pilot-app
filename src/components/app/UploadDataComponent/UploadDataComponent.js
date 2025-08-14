@@ -1,19 +1,18 @@
 import React, { useState, useCallback } from "react";
 import UploadArea from "./UploadArea/UploadArea";
 import DataTable from "./DataTable/DataTable";
-import { buildTagIndex } from "./utils/tagUtils";
 import styles from "./UploadDataComponent.module.css";
+import { buildSegmentIndexFromRows } from "./utils/tagUtils";
 
 export default function UploadDataComponent() {
   const [headers, setHeaders] = useState([]);
   const [rows, setRows] = useState([]);
   const [error, setError] = useState("");
 
-  // Tag structures for future search/filter
-  const [tagIndex, setTagIndex] = useState(null);       // { [tag]: [ids] }
-  const [tagVocabulary, setTagVocabulary] = useState([]); // ["Parent Tag 1", "Child 3", ...]
+  // Segment-level index for future searching; e.g., "Child 1" -> ["3","4"]
+  const [segmentIndex, setSegmentIndex] = useState(null);
+  const [segmentVocab, setSegmentVocab] = useState([]);
 
-  // Simple CSV parser (kept local so no external deps)
   const parseCSV = useCallback((text, delimiter = ",") => {
     const out = [];
     let row = [];
@@ -26,17 +25,9 @@ export default function UploadDataComponent() {
 
       if (inQuotes) {
         if (ch === '"') {
-          if (text[i + 1] === '"') {
-            field += '"'; // escaped quote
-            i += 2;
-          } else {
-            inQuotes = false;
-            i++;
-          }
-        } else {
-          field += ch;
-          i++;
-        }
+          if (text[i + 1] === '"') { field += '"'; i += 2; }
+          else { inQuotes = false; i++; }
+        } else { field += ch; i++; }
         continue;
       }
 
@@ -44,8 +35,7 @@ export default function UploadDataComponent() {
       if (ch === delimiter) { row.push(field); field = ""; i++; continue; }
       if (ch === "\n") { row.push(field); out.push(row); row = []; field = ""; i++; continue; }
       if (ch === "\r") { i++; continue; }
-      field += ch;
-      i++;
+      field += ch; i++;
     }
 
     row.push(field);
@@ -58,16 +48,16 @@ export default function UploadDataComponent() {
     return out;
   }, []);
 
-  const recomputeTags = useCallback((hdrs, dataRows) => {
+  const recomputeSegmentIndex = useCallback((hdrs, dataRows) => {
     const idColIndex = hdrs.indexOf("ID");
-    const tagColIndex = hdrs.indexOf("Tags");
-    if (idColIndex >= 0 && tagColIndex >= 0) {
-      const { index, uniqueTags } = buildTagIndex(dataRows, tagColIndex, idColIndex);
-      setTagIndex(index);
-      setTagVocabulary(uniqueTags);
+    const tagsColIndex = hdrs.indexOf("Tags");
+    if (idColIndex >= 0 && tagsColIndex >= 0) {
+      const { index, uniqueSegments } = buildSegmentIndexFromRows(dataRows, idColIndex, tagsColIndex);
+      setSegmentIndex(index);
+      setSegmentVocab(uniqueSegments);
     } else {
-      setTagIndex(null);
-      setTagVocabulary([]);
+      setSegmentIndex(null);
+      setSegmentVocab([]);
     }
   }, []);
 
@@ -76,8 +66,8 @@ export default function UploadDataComponent() {
       setError("");
       setHeaders([]);
       setRows([]);
-      setTagIndex(null);
-      setTagVocabulary([]);
+      setSegmentIndex(null);
+      setSegmentVocab([]);
 
       if (!file) return;
       if (!file.type.includes("csv") && !/\.csv$/i.test(file.name)) {
@@ -100,23 +90,43 @@ export default function UploadDataComponent() {
 
         setHeaders(hdrs);
         setRows(dataRows);
-        recomputeTags(hdrs, dataRows);
+        recomputeSegmentIndex(hdrs, dataRows);
       } catch (e) {
         console.error(e);
         setError("Failed to read file.");
       }
     },
-    [parseCSV, recomputeTags]
+    [parseCSV, recomputeSegmentIndex]
   );
 
   const handleDeleteRow = useCallback((rowIndex) => {
     setRows((prev) => {
       const next = prev.filter((_, i) => i !== rowIndex);
-      // keep tag index in sync
-      if (headers.length) recomputeTags(headers, next);
+      if (headers.length) recomputeSegmentIndex(headers, next);
       return next;
     });
-  }, [headers, recomputeTags]);
+  }, [headers, recomputeSegmentIndex]);
+
+  // Remove ONE full path from the row’s Tags cell
+  const handleRemoveTagPath = useCallback((rowIndex, path) => {
+    setRows((prev) => {
+      const next = [...prev];
+      const tagsColIndex = headers.indexOf("Tags");
+      if (tagsColIndex < 0) return prev;
+
+      const current = String(next[rowIndex]?.[tagsColIndex] ?? "");
+      const parts = current.split(/\s*(?:\||;)\s*/g).map(s => s.trim()).filter(Boolean);
+
+      const filtered = parts.filter((p) => p !== path);
+
+      next[rowIndex] = [...next[rowIndex]];
+      // save as pipe-separated paths
+      next[rowIndex][tagsColIndex] = filtered.join(" | ");
+
+      if (headers.length) recomputeSegmentIndex(headers, next);
+      return next;
+    });
+  }, [headers, recomputeSegmentIndex]);
 
   return (
     <div className="p-3 p-lg-4">
@@ -131,12 +141,17 @@ export default function UploadDataComponent() {
 
       {headers.length > 0 && rows.length > 0 && (
         <div className="mt-4">
-          <DataTable headers={headers} rows={rows} onDeleteRow={handleDeleteRow} />
+          <DataTable
+            headers={headers}
+            rows={rows}
+            onDeleteRow={handleDeleteRow}
+            onRemoveTagPath={handleRemoveTagPath}
+          />
 
-          {/* Optional: tiny debug / visibility for tag logic; safe to remove */}
+          {/* Optional debug info; remove when not needed */}
           {/* <div className="mt-3 small text-secondary">
-            <div><strong>Unique Tags:</strong> {tagVocabulary.join(", ")}</div>
-            <div><strong>Index Example (Parent Tag 2):</strong> {JSON.stringify(tagIndex?.["Parent Tag 2"] || [])}</div>
+            <div><strong>Unique tag segments:</strong> {segmentVocab.join(", ")}</div>
+            <div><strong>Parent Tag 2 →</strong> {JSON.stringify(segmentIndex?.["Parent Tag 2"] || [])}</div>
           </div> */}
         </div>
       )}
