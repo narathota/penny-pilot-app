@@ -1,0 +1,29 @@
+.wrapper {
+  margin-top: 1rem;
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .75rem;
+  flex-wrap: nowrap;
+}
+
+.paginationGroup {
+  white-space: nowrap;
+}
+
+.dataTable {
+  font-size: 0.9rem;
+}
+
+/* Pagination buttons focus state */
+.btn-primary {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-primary:focus {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 1px;
+}

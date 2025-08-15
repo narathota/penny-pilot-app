@@ -1,0 +1,153 @@
+.cell {
+  vertical-align: middle;
+}
+
+.actions {
+  white-space: nowrap;
+}
+
+/* Narrow the Date column slightly in both modes */
+.dateCell {
+  width: 0.1%;
+  white-space: nowrap;
+}
+
+/* Keep the date input compact so Description gets more room */
+.dateInput {
+  max-width: 12ch; /* fits YYYY-MM-DD */
+}
+
+/* Let Description naturally claim more horizontal space */
+.descriptionCell {
+  width: 99%;
+}
+
+/* ---------- Tags typeahead (edit mode) ---------- */
+.tagsCell {
+  position: relative;
+}
+
+.tagsTypeaheadWrap {
+  position: relative;
+}
+
+.tagMenu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow: auto;
+  border: 1px solid var(--bs-border-color);
+  background: var(--bs-body-bg);
+  border-radius: var(--pp-radius);
+  box-shadow: var(--pp-shadow);
+  padding: .25rem;
+}
+
+.tagMenuItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: .4rem .6rem;
+  border: none;
+  background: transparent;
+  color: var(--bs-body-color);
+  border-radius: calc(var(--pp-radius) - .25rem);
+  cursor: pointer;
+}
+
+.tagMenuItem:hover {
+  background: var(--bs-tertiary-bg);
+}
+
+.tagMenuItem.active {
+  background: rgba(var(--pp-primary-rgb), .12);
+}
+
+.tagMenuEmpty {
+  color: var(--bs-secondary-color);
+  cursor: default;
+}
+
+/* ---------- Amount operator prefix ---------- */
+.amountPrefix {
+  min-width: 2.25rem;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* ---------- Tag chips (view mode) ---------- */
+.tagWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .35rem .6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background-color: var(--pp-chip-bg, var(--bs-secondary-bg));
+  color: var(--pp-chip-fg, var(--bs-body-color));
+  border: 1px solid var(--pp-chip-border, var(--bs-border-color));
+  line-height: 1;
+}
+
+.tag:hover {
+  background-color: var(--pp-chip-hover, var(--bs-tertiary-bg));
+}
+
+.tagText {
+  line-height: 1;
+}
+
+.tagRemove {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--pp-chip-remove, var(--bs-danger));
+  padding: 0;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.tagRemove:hover {
+  color: var(--pp-chip-remove-hover, var(--bs-danger-text-emphasis));
+  filter: brightness(1.05);
+}
+
+.tagRemove:focus-visible {
+  outline: 2px solid var(--pp-chip-remove, var(--bs-danger));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.amountInput {
+  min-width: 8ch;   /* roughly space for +/-123456 */
+  max-width: 14ch;  /* optional cap so it doesn't get too wide */
+}
+/* Give Amount column a seat at the table */
+.amountCell {
+  width: 1%;           /* lets other columns grow, but reserves some space */
+  white-space: nowrap; /* keep prefix + input together */
+}
+
+/* Ensure the input group itself can't shrink too small */
+.amountGroup {
+  min-width: 18ch;     /* tweak as desired */
+  flex-wrap: nowrap;
+}
+
+/* Make the actual input comfortably wide */
+.amountInput {
+  min-width: 12ch;     /* room for +/- 10,000,000 */
+  max-width: 20ch;     /* optional cap */
+}

@@ -1,7 +1,7 @@
 // All marketing copy is HTML strings (will later be mapped to Firestore).
 export const HERO_HEADLINE_HTML = `Analyze spending. Build budgets. <span style="color:var(--pp-secondary)">Own your future.</span>`;
 export const HERO_SUBTITLE_HTML = `Pocket Penny helps you track, tag, and forecast your money across accounts and currencies.`;
-export const HERO_CTA_HTML = `<a href="#demo" class="btn btn-primary btn-lg">Request a Demo</a> <a href="#features" class="btn btn-outline-secondary btn-lg ms-2">Explore Features</a>`;
+export const HERO_CTA_HTML = `<a href="#demo" class="btn btn-primary btn-lg heroCTAButtons">Request a Demo</a> <a href="#features" class="btn btn-outline-secondary btn-lg ms-2 heroCTAButtons">Explore Features</a>`;
 
 export const ABOUT_HTML = `
   <p>Pocket Penny is a personal finance copilot. Import bank statements, tag expenses, and get automatic insights into where your money goes.</p>

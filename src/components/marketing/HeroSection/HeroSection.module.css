@@ -1,5 +1,28 @@
-.hero{ background: linear-gradient(180deg, rgba(var(--pp-primary-rgb),0.1), transparent 60%); }
-.mockCard{ border:1px solid var(--bs-border-color); background: var(--bs-body-bg); border-radius: var(--bs-border-radius-xl); padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-.mockChart{ height: 160px; border-radius: 12px; background: repeating-linear-gradient(90deg, rgba(var(--pp-primary-rgb),.2), rgba(var(--pp-primary-rgb),.2) 10px, transparent 10px, transparent 20px); }
-.mockTable{ height: 120px; border-radius: 12px; background: linear-gradient(180deg, rgba(0,0,0,.05), transparent); margin-top: 16px; }
+.hero {
+    background: linear-gradient(180deg, rgba(var(--pp-primary-rgb), 0.1), transparent 60%);
+}
 
+.mockCard {
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-body-bg);
+    border-radius: var(--bs-border-radius-xl);
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.mockChart {
+    height: 160px;
+    border-radius: 12px;
+    background: repeating-linear-gradient(90deg, rgba(var(--pp-primary-rgb), .2), rgba(var(--pp-primary-rgb), .2) 10px, transparent 10px, transparent 20px);
+}
+
+.mockTable {
+    height: 120px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, .05), transparent);
+    margin-top: 16px;
+}
+
+.heroCTAButtons {
+    margin: 0 0 10px 0 !important;
+}

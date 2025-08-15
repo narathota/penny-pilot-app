@@ -1,0 +1,53 @@
+.uploadCard {
+  border: 1px dashed var(--bs-border-color);
+  background: var(--bs-body-bg);
+  border-radius: var(--bs-border-radius-lg);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+  cursor: pointer;
+}
+.dragOver {
+  border-color: var(--pp-primary);
+  box-shadow: 0 0 0 3px rgba(var(--pp-primary-rgb), .15) inset;
+}
+.dropBadge {
+  width: 48px; height: 48px; border-radius: 10px;
+  display: grid; place-items: center; font-weight: 800;
+  background-image: linear-gradient(135deg, var(--pp-primary), var(--pp-secondary));
+  color: #fff; box-shadow: 0 10px 24px rgba(var(--pp-primary-rgb), .2);
+}
+
+/* Table region */
+.tableBody { padding-top: 0; }
+.tableWrap {
+  width: 100%; overflow: auto;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  background: var(--bs-body-bg);
+}
+.table thead th { position: sticky; top: 0; background: var(--bs-body-bg); z-index: 1; }
+
+/* Tags */
+.tagCell { min-width: 320px; }
+.chips { display: flex; flex-wrap: wrap; gap: .375rem; }
+.chip {
+  background: rgba(var(--pp-primary-rgb), .12);
+  color: var(--bs-body-color);
+  font-weight: 600;
+  display: inline-flex; align-items: center; gap: .25rem;
+  padding: .2rem .5rem;
+}
+.chipX {
+  appearance: none; border: 0; background: transparent; padding: 0; line-height: 1;
+  font-weight: 700; cursor: pointer; color: inherit;
+}
+
+/* Amount color (theme-aware through Bootstrap variables) */
+.amtPos { color: var(--bs-success-text-emphasis); }
+.amtNeg { color: var(--bs-danger-text-emphasis); }
+
+/* Row warning gradient (type/amount mismatch) */
+.rowWarn td { background-image: linear-gradient(0deg, rgba(255,0,0,.03), rgba(255,0,0,0)); }
+
+.container {
+  padding: 1rem;
+}

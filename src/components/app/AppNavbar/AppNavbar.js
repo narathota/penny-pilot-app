@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import ThemeToggle from "../../common/ThemeToggle/ThemeToggle";
 import styles from "./AppNavbar.module.css";
@@ -26,10 +26,26 @@ export default function AppNavbar() {
           ☰
         </button>
 
-        <span className="navbar-brand fw-bold d-flex align-items-center gap-2">
+        {/* <span className="navbar-brand fw-bold d-flex align-items-center gap-2">
           <img src="/pp-logo.png" alt="" height="20" width="20" aria-hidden />
           <span>Pocket Penny</span>
-        </span>
+        </span> */}
+
+        <Link
+            className={`navbar-brand fw-bold d-flex align-items-center gap-2 ${styles.brand}`}
+            to="/"
+            aria-label="Pocket Penny — Home"
+          >
+            <img
+              src="/pp-logo.png"
+              alt=""
+              className={styles.logoImg}
+              height={28}
+              width={28}
+              aria-hidden="true"
+            />
+            <span className="fw-bold">Pocket&nbsp;Penny</span>
+          </Link>
 
         <div className="d-flex align-items-center gap-2">
           {/* Theme picker lives in app navbar too */}

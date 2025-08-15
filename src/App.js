@@ -19,6 +19,8 @@ import TagsPage from "./components/app/pages/TagsPage";
 import SettingsPage from "./components/app/pages/SettingsPage";
 import DashboardHome from "./components/app/pages/DashboardHome";
 import ProfileManagementPage from "./components/app/pages/ProfileManagementPage";
+import UploadDataPage from "./components/app/pages/UploadDataPage";
+import DataManagementAdminPage from "./components/app/pages/DataManagementAdminPage";
 
 import Four04Landing from "./components/marketing/Four04Landing/Four04Landing";
 import "./App.css";
@@ -52,6 +54,8 @@ export default function App() {
             <Route path="tags" element={<TagsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfileManagementPage />} />
+            <Route path="upload" element={<UploadDataPage />} />
+            <Route path="datamgt" element={<DataManagementAdminPage />} />
           </Route>
 
           {/* Old alias */}
