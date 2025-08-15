@@ -5,7 +5,7 @@ import styles from "./TableRow.module.css";
 import { splitTagPathsCell } from "../utils/tagUtils";
 
 // Fetch utils (use your existing firebaseController wrapper)
-import { fetchCurrencyList, fetchTransactionTypes } from "../utils/dataFetchers";
+import { fetchCurrencyList, fetchTransactionTypes } from "../../../../utils/firebase/dataFetchers";
 
 export default function TableRow({
   row,

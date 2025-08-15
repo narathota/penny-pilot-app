@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import UploadArea from "./UploadArea/UploadArea";
 import DataTable from "./DataTable/DataTable";
+import ProcessingDataComponent from "./ProcessingDataComponent/ProcessingDataComponent";
 import styles from "./UploadDataComponent.module.css";
 import { buildSegmentIndexFromRows } from "./utils/tagUtils";
 
@@ -147,6 +148,8 @@ export default function UploadDataComponent() {
             onDeleteRow={handleDeleteRow}
             onRemoveTagPath={handleRemoveTagPath}
           />
+
+          <ProcessingDataComponent headers={headers} rows={rows} />
 
           {/* Optional debug info; remove when not needed */}
           {/* <div className="mt-3 small text-secondary">

@@ -1,9 +1,33 @@
+// FILE: src/utils/firebase/firebaseController.js
 import { initializeApp } from "firebase/app";
 import {
-  getAuth, setPersistence, browserLocalPersistence, GoogleAuthProvider,
-  signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged,
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  signOut,
+  onAuthStateChanged,
 } from "firebase/auth";
-import { getFirestore, setDoc, getDoc, doc, serverTimestamp } from "firebase/firestore";
+import {
+  getFirestore,
+  setDoc,
+  getDoc,
+  doc,
+  serverTimestamp,
+} from "firebase/firestore";
+import { COLLECTIONS } from "./collections";
+
+// Re-export data fetchers/writers so callers can import from the controller if they want.
+// (Keeps your app flexible, and avoids breaking existing imports.)
+export * from "./dataFetchers";
+export * from "./dataWriters";
+
+/* ------------------------------------------------------------------ */
+/* Core init + auth                                                    */
+/* ------------------------------------------------------------------ */
 
 let _app = null, _auth = null, _db = null;
 let _ready = false, _reason = "";
@@ -12,8 +36,13 @@ let _persistReady = null;
 function env(k) { return process.env[k]; }
 
 function validateEnv() {
-  const req = ["REACT_APP_FB_API_KEY", "REACT_APP_FB_AUTH_DOMAIN", "REACT_APP_FB_PROJECT_ID", "REACT_APP_FB_APP_ID"];
-  const missing = req.filter(k => !env(k) || String(env(k)).trim() === "");
+  const req = [
+    "REACT_APP_FB_API_KEY",
+    "REACT_APP_FB_AUTH_DOMAIN",
+    "REACT_APP_FB_PROJECT_ID",
+    "REACT_APP_FB_APP_ID",
+  ];
+  const missing = req.filter((k) => !env(k) || String(env(k)).trim() === "");
   if (missing.length) { _reason = `Missing env vars: ${missing.join(", ")}`; return false; }
   return true;
 }
@@ -32,7 +61,7 @@ function initIfNeeded() {
     measurementId: env("REACT_APP_FB_MEASUREMENT_ID"),
   };
 
-  // Warn if authDomain is not a Firebase-managed domain (redirect flow needs __/auth/handler there)
+  // Warn if authDomain is not a Firebase-managed domain
   if (cfg.authDomain && !/(\.firebaseapp\.com|\.web\.app)$/i.test(cfg.authDomain)) {
     console.warn(
       `[PocketPenny] authDomain "${cfg.authDomain}" is not a Firebase domain. 
@@ -59,13 +88,16 @@ function initIfNeeded() {
   }
 }
 
-async function waitPersistence() { try { if (_persistReady) await _persistReady; } catch { } }
+async function waitPersistence() { try { if (_persistReady) await _persistReady; } catch {} }
 
-export function getFirebase() { return { app: _app, auth: _auth, db: _db, ready: initIfNeeded(), reason: _reason }; }
+export function getFirebase() {
+  return { app: _app, auth: _auth, db: _db, ready: initIfNeeded(), reason: _reason };
+}
 
-function isMobileUA() { return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
+/* ------------------------------------------------------------------ */
+/* Auth flows                                                          */
+/* ------------------------------------------------------------------ */
 
-// Removed the isMobileUA() check. The code will now always attempt signInWithPopup first.
 export async function loginWithGoogle() {
   const { auth, ready, reason } = getFirebase();
   if (!ready) throw new Error(`Firebase not configured: ${reason}`);
@@ -75,12 +107,10 @@ export async function loginWithGoogle() {
   provider.setCustomParameters({ prompt: "select_account" });
 
   try {
-    // Attempt pop-up login on all platforms
     const cred = await signInWithPopup(auth, provider);
     await writeAppUser(cred.user);
     return { method: "popup", user: cred.user };
   } catch (err) {
-    // If pop-up is blocked or fails, fall back to redirect method
     if (err?.code === "auth/popup-blocked" || err?.code === "auth/popup-closed-by-user") {
       await signInWithRedirect(auth, provider);
       return { method: "redirect" };
@@ -105,28 +135,37 @@ export async function handleAuthRedirect() {
 
 export function onAuthChangedSafe(cb) {
   const { auth, ready } = getFirebase();
-  if (!ready) { setTimeout(() => cb(null), 0); return () => { }; }
+  if (!ready) { setTimeout(() => cb(null), 0); return () => {}; }
   return onAuthStateChanged(auth, cb);
 }
 
-export async function logoutUser() { const { auth, ready } = getFirebase(); if (ready) await signOut(auth); }
+export async function logoutUser() {
+  const { auth, ready } = getFirebase();
+  if (ready) await signOut(auth);
+}
 
+/* ------------------------------------------------------------------ */
+/* App user profile write                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Write/merge the app user record, keyed by normalized email (fallback uid).
+ * Uses COLLECTIONS.systemAppUsers if present, else falls back to "app_users".
+ */
 export async function writeAppUser(user) {
   const { db, ready } = getFirebase();
   if (!ready || !user) return;
 
-  // Use normalized email as the doc ID; fallback to uid if no email
   const emailId = (user.email || "").trim().toLowerCase();
   const docId = emailId || user.uid;
-  const ref = doc(db, "app_users", docId);
+  const colName = (COLLECTIONS && COLLECTIONS.systemAppUsers) || "app_users";
+  const ref = doc(db, colName, docId);
 
-  // Read once to decide whether to set signUpAt (one-time)
   let shouldSetSignup = false;
   try {
     const snap = await getDoc(ref);
     shouldSetSignup = !snap.exists() || !snap.data()?.signUpAt;
   } catch {
-    // If read fails for any reason, be conservative and set signUpAt (it will just merge on create)
     shouldSetSignup = true;
   }
 
@@ -136,20 +175,19 @@ export async function writeAppUser(user) {
     displayName: user.displayName || null,
     photoURL: user.photoURL || null,
     providerId: user.providerData?.[0]?.providerId || "google.com",
-    lastLoginAt: serverTimestamp(),     // ALWAYS updates on login
+    lastLoginAt: serverTimestamp(),
   };
 
   const firstTime = shouldSetSignup
-    ? {
-        signUpAt: serverTimestamp(),    // ONE-TIME only
-        createdAt: serverTimestamp(),   // keep for backward-compat if you already use it
-      }
+    ? { signUpAt: serverTimestamp(), createdAt: serverTimestamp() }
     : {};
 
   await setDoc(ref, { ...firstTime, ...base }, { merge: true });
 }
 
-
+/* ------------------------------------------------------------------ */
+/* Status helpers                                                      */
+/* ------------------------------------------------------------------ */
 
 export function isFirebaseReady() { return initIfNeeded(); }
 export function notReadyReason() { return _reason; }
