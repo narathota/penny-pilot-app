@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faTrash, faPen, faSave, faXmark } from "@fortawesome/free-solid-svg-icons";
 import styles from "./TableRow.module.css";
@@ -19,19 +19,26 @@ export default function TableRow({
   tagOptions = [], // array of existing tag strings for typeahead
   accountOptions = [], // array of existing account strings for typeahead
 }) {
+  // Map header names -> indices once
+  const idx = useMemo(() => {
+    const map = new Map();
+    headers?.forEach((h, i) => map.set(h, i));
+    return {
+      Tags: map.get("Tags"),
+      Date: map.get("Date"),
+      Description: map.get("Description"),
+      Currency: map.get("Currency"),
+      Type: map.get("Type"),
+      Account: map.get("Account"),
+      Amount: map.get("Amount"),
+    };
+  }, [headers]);
+
   // Always hide the Status column for this view
   const effectiveHidden = useMemo(() => {
     const set = new Set(["Status", ...hiddenColumns]);
     return Array.from(set);
   }, [hiddenColumns]);
-
-  const tagsColIndex = useMemo(() => headers.indexOf("Tags"), [headers]);
-  const dateColIndex = useMemo(() => headers.indexOf("Date"), [headers]);
-  const descColIndex = useMemo(() => headers.indexOf("Description"), [headers]);
-  const currColIndex = useMemo(() => headers.indexOf("Currency"), [headers]);
-  const typeColIndex = useMemo(() => headers.indexOf("Type"), [headers]);
-  const acctColIndex = useMemo(() => headers.indexOf("Account"), [headers]);
-  const amountColIndex = useMemo(() => headers.indexOf("Amount"), [headers]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editValues, setEditValues] = useState(() => rowToValues(row, headers));
@@ -40,20 +47,22 @@ export default function TableRow({
   const [txnTypes, setTxnTypes] = useState([]);
   const [loading, setLoading] = useState({ currencies: false, types: false });
   const [errors, setErrors] = useState({ currencies: "", types: "" });
-  const [currencySymbol, setCurrencySymbol] = useState("");
 
   // Optimistic display row (array) used after Save until parent props update
   const [optimisticRow, setOptimisticRow] = useState(null);
 
   // ---------- helpers ----------
   const deepEqual = (a, b) => {
-    try { return JSON.stringify(a) === JSON.stringify(b); } catch { return false; }
+    try {
+      return JSON.stringify(a) === JSON.stringify(b);
+    } catch {
+      return false;
+    }
   };
 
   function rowToValues(r, hdrs) {
     const obj = {};
-    hdrs.forEach((h, i) => (obj[h] = r[i]));
-    // Normalize certain fields
+    (hdrs || []).forEach((h, i) => (obj[h] = r?.[i]));
     if (obj.Date) obj.Date = toISODate(obj.Date);
     if (obj.Tags && Array.isArray(obj.Tags)) obj.Tags = obj.Tags.join(", ");
     return obj;
@@ -61,20 +70,16 @@ export default function TableRow({
 
   function toISODate(v) {
     if (!v) return "";
-    try {
-      const d = v instanceof Date ? v : new Date(v);
-      if (isNaN(d.getTime())) return "";
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      return `${y}-${m}-${day}`;
-    } catch {
-      return "";
-    }
+    const d = v instanceof Date ? v : new Date(v);
+    if (isNaN(d.getTime())) return "";
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
   }
 
   function valuesToRowArray(values, hdrs) {
-    return hdrs.map((h) => {
+    return (hdrs || []).map((h) => {
       if (h === "Tags") {
         return (values[h] || "")
           .split(",")
@@ -91,11 +96,10 @@ export default function TableRow({
     const out = [];
     const seen = new Set();
     (items || []).forEach((raw) => {
-      const codeRaw =
-        raw?.currencyCode ?? raw?.code ?? raw?.iso ?? ""; // do NOT use doc id fallback
-      const code = String(codeRaw || "").trim().toUpperCase();
-      if (!code) return; // drop entries without a true code
-      if (seen.has(code)) return; // de-dupe
+      const code = String(raw?.currencyCode ?? raw?.code ?? raw?.iso ?? "")
+        .trim()
+        .toUpperCase();
+      if (!code || seen.has(code)) return;
       seen.add(code);
       out.push({
         currencyCode: code,
@@ -106,9 +110,14 @@ export default function TableRow({
     return out;
   }
 
+  // Preserve at least { name, symbol, id } for Type↔Amount behavior
   function normalizeTxnTypes(items) {
     return (items || [])
-      .map((x) => ({ name: x?.name ? String(x.name) : "" }))
+      .map((x) => ({
+        name: x?.name ? String(x.name) : "",
+        symbol: x?.symbol === "-" ? "-" : "+", // default to +
+        id: x?.id ? String(x.id) : undefined,
+      }))
       .filter((x) => x.name)
       .sort((a, b) => a.name.localeCompare(b.name));
   }
@@ -149,19 +158,21 @@ export default function TableRow({
     let ignore = false;
 
     async function loadCurrencies() {
-      // if (currenciesProp?.length) return; // parent already provided
-      setLoading((s) => ({ ...s, currencies: true }));
-      setErrors((e) => ({ ...e, currencies: "" }));
-      try {
-        const list = await fetchCurrencyList();
-        if (!ignore) {
-          const normalized = normalizeCurrencies(list);
-          if (!deepEqual(normalized, currencies)) setCurrencies(normalized);
+      // If parent supplied currencies, use those; otherwise fetch
+      if (!currenciesProp?.length) {
+        setLoading((s) => ({ ...s, currencies: true }));
+        setErrors((e) => ({ ...e, currencies: "" }));
+        try {
+          const list = await fetchCurrencyList();
+          if (!ignore) {
+            const normalized = normalizeCurrencies(list);
+            if (!deepEqual(normalized, currencies)) setCurrencies(normalized);
+          }
+        } catch {
+          if (!ignore) setErrors((er) => ({ ...er, currencies: "Failed to load currencies" }));
+        } finally {
+          if (!ignore) setLoading((s) => ({ ...s, currencies: false }));
         }
-      } catch {
-        if (!ignore) setErrors((er) => ({ ...er, currencies: "Failed to load currencies" }));
-      } finally {
-        if (!ignore) setLoading((s) => ({ ...s, currencies: false }));
       }
     }
 
@@ -183,21 +194,13 @@ export default function TableRow({
 
     loadCurrencies();
     loadTypes();
-    return () => { ignore = true; };
+    return () => {
+      ignore = true;
+    };
   }, []); // run once
-
-  // Update currency symbol whenever the selected currency changes
-  useEffect(() => {
-    const selectedCode = (editValues.Currency || "").toString().toUpperCase();
-    const currencyData = currencies.find(
-      (c) => c.currencyCode === selectedCode
-    );
-    setCurrencySymbol(currencyData?.symbol || "");
-  }, [editValues.Currency, currencies]);
 
   // ---------- handlers ----------
   const handleEditClick = () => {
-    // Start from what's on screen (optimistic or props)
     setEditValues(baseValues);
     setIsEditing(true);
   };
@@ -216,8 +219,128 @@ export default function TableRow({
   };
 
   const handleChange = (field, value) => {
-    setEditValues((prev) => ({ ...prev, [field]: value }));
+    setEditValues((prev) => {
+      if (field === "Type") {
+        const selected = txnTypes.find((t) => t.name === value);
+        const sym = selected?.symbol === "-" ? "-" : "+";
+        const next = { ...prev, Type: value };
+        // Normalize sign of amount if numeric
+        const asNum = Number(next.Amount);
+        if (!Number.isNaN(asNum)) {
+          const magnitude = Math.abs(asNum);
+          next.Amount = sym === "-" ? -magnitude : magnitude;
+        }
+        return next;
+      }
+      return { ...prev, [field]: value };
+    });
   };
+
+  // Optimistically remove a tag in-display, then notify parent
+  const handleRemoveTag = (pathToRemove) => {
+    const tagCol = idx.Tags;
+    if (typeof tagCol !== "number") {
+      onRemoveTagPath?.(rowIndex, pathToRemove);
+      return;
+    }
+    const current = optimisticRow || row || [];
+    const currentCell = current[tagCol] ?? "";
+    const parts = splitTagPathsCell(currentCell);
+    const nextParts = parts.filter((p) => p !== pathToRemove);
+    const nextCell = nextParts.join("; ");
+    const nextRow = [...current];
+    nextRow[tagCol] = nextCell;
+    setOptimisticRow(nextRow);
+    onRemoveTagPath?.(rowIndex, pathToRemove);
+  };
+
+  // ---------- Tags typeahead (edit mode) ----------
+  const tagsInputRef = useRef(null);
+  const [tagsOpen, setTagsOpen] = useState(false);
+  const [tagsHighlight, setTagsHighlight] = useState(0);
+
+  const tagTokens = useMemo(() => {
+    return String(editValues.Tags || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }, [editValues.Tags]);
+
+  const lastFragment = useMemo(() => {
+    const raw = String(editValues.Tags || "");
+    const commaIdx = raw.lastIndexOf(",");
+    return (commaIdx === -1 ? raw : raw.slice(commaIdx + 1)).trimStart();
+  }, [editValues.Tags]);
+
+  const tagSuggestions = useMemo(() => {
+    const existing = new Set(tagTokens.map((t) => t.toLowerCase()));
+    const base = (tagOptions || []).filter(Boolean);
+    // When empty, show all not-yet-used; otherwise prefix-filter
+    const pool = base.filter((t) => !existing.has(String(t).toLowerCase()));
+    if (!lastFragment) return pool.slice(0, 20);
+    const lf = lastFragment.toLowerCase();
+    return pool.filter((t) => String(t).toLowerCase().startsWith(lf)).slice(0, 20);
+  }, [tagOptions, tagTokens, lastFragment]);
+
+  const replaceLastFragment = (full, replacement) => {
+    const raw = String(full || "");
+    const idx = raw.lastIndexOf(",");
+    const before = idx === -1 ? "" : raw.slice(0, idx + 1) + " ";
+    return (before + replacement).replace(/\s+$/g, "");
+  };
+
+  const acceptTagSuggestion = (value) => {
+    const replaced = replaceLastFragment(editValues.Tags || "", value);
+    // Append trailing comma + space to keep adding tags
+    const withComma = replaced.length ? `${replaced}, ` : `${value}, `;
+    handleChange("Tags", withComma);
+    setTagsOpen(true);
+    setTagsHighlight(0);
+    // focus back to input
+    requestAnimationFrame(() => tagsInputRef.current?.focus());
+  };
+
+  const onTagsKeyDown = (e) => {
+    if (!tagsOpen && ["ArrowDown", "Enter", "Tab"].includes(e.key)) {
+      setTagsOpen(true);
+    }
+    if (!tagsOpen) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setTagsHighlight((i) => Math.min(i + 1, Math.max(tagSuggestions.length - 1, 0)));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setTagsHighlight((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter" || e.key === "Tab") {
+      if (tagSuggestions.length > 0) {
+        e.preventDefault();
+        acceptTagSuggestion(tagSuggestions[tagsHighlight] || tagSuggestions[0]);
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setTagsOpen(false);
+    } else if (e.key === ",") {
+      // Keep menu open after comma to suggest next tag
+      setTagsOpen(true);
+      setTagsHighlight(0);
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!tagsOpen) return;
+    const onDocClick = (ev) => {
+      if (!tagsInputRef.current) return;
+      if (tagsInputRef.current.contains(ev.target)) return;
+      // if click is inside the dropdown container, ignore
+      const menu = document.getElementById(`tags-menu-${rowIndex}`);
+      if (menu && menu.contains(ev.target)) return;
+      setTagsOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [tagsOpen, rowIndex]);
 
   // ---------- render helpers ----------
   const renderTagsDisplayCell = (cell, i) => {
@@ -228,15 +351,18 @@ export default function TableRow({
           {paths.length === 0 ? (
             <span className="text-secondary small">—</span>
           ) : (
-            paths.map((p, idx) => (
-              <span key={`${p}-${idx}`} className={`badge rounded-pill ${styles.tag}`}>
+            paths.map((p, idx2) => (
+              <span key={`${p}-${idx2}`} className={`badge rounded-pill ${styles.tag}`}>
                 <span className={styles.tagText}>{p}</span>
                 <button
                   type="button"
                   className={styles.tagRemove}
                   aria-label={`Remove ${p}`}
                   title={`Remove ${p}`}
-                  onClick={() => onRemoveTagPath?.(rowIndex, p)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveTag(p);
+                  }}
                 >
                   <FontAwesomeIcon icon={faTimes} />
                 </button>
@@ -248,11 +374,19 @@ export default function TableRow({
     );
   };
 
+  const applyAmountSign = (raw, symbol) => {
+    if (raw === "" || raw === null || raw === undefined) return raw;
+    const n = Number(raw);
+    if (Number.isNaN(n)) return raw;
+    const abs = Math.abs(n);
+    return symbol === "-" ? -abs : abs;
+  };
+
   const renderEditableCell = (header, i) => {
     // Date
-    if (i === dateColIndex || header === "Date") {
+    if (i === idx.Date || header === "Date") {
       return (
-        <td key={i} className={styles.cell}>
+        <td key={i} className={`${styles.cell} ${styles.dateCell}`}>
           <input
             type="date"
             className={`form-control form-control-sm ${styles.dateInput}`}
@@ -263,9 +397,9 @@ export default function TableRow({
       );
     }
     // Description
-    if (i === descColIndex || header === "Description") {
+    if (i === idx.Description || header === "Description") {
       return (
-        <td key={i} className={styles.cell}>
+        <td key={i} className={`${styles.cell} ${styles.descriptionCell}`}>
           <input
             type="text"
             className="form-control form-control-sm"
@@ -275,31 +409,52 @@ export default function TableRow({
         </td>
       );
     }
-    // Amount (prefix with symbol of selected currency)
-    if (i === amountColIndex || header === "Amount") {
+    // Amount (with operator prefix derived from selected Type)
+    if (i === idx.Amount || header === "Amount") {
+      const selectedType = txnTypes.find((t) => t.name === editValues.Type);
+      const typeSymbol = selectedType?.symbol === "-" ? "-" : "+";
+      const amountNum = Number(editValues.Amount);
+      const magnitude =
+        editValues.Amount === "" || Number.isNaN(amountNum) ? (editValues.Amount ?? "") : Math.abs(amountNum);
+
       return (
-        <td key={i} className={styles.cell}>
-          <div className="input-group input-group-sm">
-            {/* {currencySymbol && <span className="input-group-text">{currencySymbol}</span>} */}
+        <td key={i} className={`${styles.cell} ${styles.amountCell}`}>
+          <div className={`input-group input-group-sm ${styles.amountGroup}`}>
+            <span className={`input-group-text ${styles.amountPrefix}`} aria-label="Amount sign">
+              {typeSymbol}
+            </span>
             <input
               type="number"
-              className="form-control"
-              value={editValues.Amount ?? ""}
-              onChange={(e) => handleChange("Amount", e.target.value)}
+              className={`form-control ${styles.amountInput}`}
+              value={magnitude}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "") {
+                  handleChange("Amount", "");
+                  return;
+                }
+                const n = Number(val);
+                if (Number.isNaN(n)) {
+                  handleChange("Amount", val);
+                } else {
+                  handleChange("Amount", applyAmountSign(n, typeSymbol));
+                }
+              }}
             />
           </div>
         </td>
       );
     }
     // Currency (dropdown shows currencyCode; value is currencyCode)
-    if (i === currColIndex || header === "Currency") {
-      const selected = currencies.find(x => x.currencyCode === (editValues.Currency || "").toString().toUpperCase());
+    if (i === idx.Currency || header === "Currency") {
+      const selectedCode = String(editValues.Currency || "").toUpperCase();
+      const selected = currencies.find((x) => x.currencyCode === selectedCode);
       const title = selected ? `${selected.currencyName}${selected.symbol ? ` - ${selected.symbol}` : ""}` : "";
       return (
         <td key={i} className={styles.cell}>
           <select
             className="form-select form-select-sm"
-            value={(editValues.Currency || "").toString().toUpperCase()}
+            value={selectedCode}
             onChange={(e) => handleChange("Currency", e.target.value.toUpperCase())}
             disabled={loading.currencies}
             title={title} // hover shows "currencyName - symbol"
@@ -316,7 +471,7 @@ export default function TableRow({
       );
     }
     // Type (dropdown from pp_transaction_types, display by "name")
-    if (i === typeColIndex || header === "Type") {
+    if (i === idx.Type || header === "Type") {
       return (
         <td key={i} className={styles.cell}>
           <select
@@ -326,9 +481,9 @@ export default function TableRow({
             disabled={loading.types}
           >
             <option value="">{loading.types ? "Loading…" : "Select…"}</option>
-            {txnTypes.map((t, idx) => (
-              <option key={`tx-${t.name}-${idx}`} value={t.name}>
-                {t.name}
+            {txnTypes.map((t) => (
+              <option key={`tx-${t.id || t.name}`} value={t.name}>
+                {t.name} {t.symbol ? `(${t.symbol})` : ""}
               </option>
             ))}
           </select>
@@ -336,29 +491,55 @@ export default function TableRow({
         </td>
       );
     }
-    // Tags (typeahead; users can add new)
-    if (i === tagsColIndex || header === "Tags") {
-      const listId = `tags-list-${rowIndex}`;
+    // Tags (custom typeahead; users can add new, comma-separated)
+    if (i === idx.Tags || header === "Tags") {
+      const menuId = `tags-menu-${rowIndex}`;
       return (
-        <td key={i} className={styles.cell}>
-          <input
-            type="text"
-            className="form-control form-control-sm"
-            list={listId}
-            placeholder="Comma-separated tags"
-            value={editValues.Tags || ""}
-            onChange={(e) => handleChange("Tags", e.target.value)}
-          />
-          <datalist id={listId}>
-            {tagOptions.filter(Boolean).map((t, idx) => (
-              <option key={`tag-${t}-${idx}`} value={t} />
-            ))}
-          </datalist>
+        <td key={i} className={`${styles.cell} ${styles.tagsCell}`}>
+          <div className={styles.tagsTypeaheadWrap}>
+            <input
+              ref={tagsInputRef}
+              type="text"
+              className="form-control form-control-sm"
+              placeholder="Comma-separated tags"
+              value={editValues.Tags || ""}
+              onFocus={() => setTagsOpen(true)}
+              onChange={(e) => {
+                handleChange("Tags", e.target.value);
+                setTagsOpen(true);
+                setTagsHighlight(0);
+              }}
+              onKeyDown={onTagsKeyDown}
+            />
+            {tagsOpen && (
+              <div id={menuId} role="listbox" className={styles.tagMenu}>
+                {tagSuggestions.length === 0 ? (
+                  <div className={`${styles.tagMenuItem} ${styles.tagMenuEmpty}`}>No suggestions</div>
+                ) : (
+                  tagSuggestions.map((s, k) => (
+                    <button
+                      type="button"
+                      key={`sugg-${s}-${k}`}
+                      className={`${styles.tagMenuItem} ${k === tagsHighlight ? styles.active : ""}`}
+                      onMouseEnter={() => setTagsHighlight(k)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        acceptTagSuggestion(s);
+                      }}
+                    >
+                      {s}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         </td>
       );
     }
     // Account (typeahead; users can add new)
-    if (i === acctColIndex || header === "Account") {
+    if (i === idx.Account || header === "Account") {
       const listId = `acct-list-${rowIndex}`;
       return (
         <td key={i} className={styles.cell}>
@@ -370,8 +551,8 @@ export default function TableRow({
             onChange={(e) => handleChange("Account", e.target.value)}
           />
           <datalist id={listId}>
-            {accountOptions.filter(Boolean).map((a, idx) => (
-              <option key={`acct-${a}-${idx}`} value={a} />
+            {accountOptions.filter(Boolean).map((a, k) => (
+              <option key={`acct-${a}-${k}`} value={a} />
             ))}
           </datalist>
         </td>
@@ -400,17 +581,20 @@ export default function TableRow({
         const headerName = headers[i];
         if (effectiveHidden.includes(headerName)) return null;
 
-        if (isEditing) {
-          return renderEditableCell(headerName, i);
-        }
+        if (isEditing) return renderEditableCell(headerName, i);
 
         // Non-edit mode
-        if (i === tagsColIndex) {
-          return renderTagsDisplayCell(cell, i);
-        }
+        if (i === idx.Tags) return renderTagsDisplayCell(cell, i);
+
+        const extraClass =
+          i === idx.Date
+            ? styles.dateCell
+            : i === idx.Description
+            ? styles.descriptionCell
+            : "";
 
         return (
-          <td key={i} className={styles.cell}>
+          <td key={i} className={`${styles.cell} ${extraClass}`}>
             {cell ?? <span className="text-secondary small">—</span>}
           </td>
         );
@@ -468,3 +652,9 @@ export default function TableRow({
     </tr>
   );
 }
+
+/* Tag chip colors use app theme first, then Bootstrap as fallback
+   If pp-theme.css defines:
+     --pp-chip-bg, --pp-chip-fg, --pp-chip-border, --pp-chip-hover,
+     --pp-chip-remove, --pp-chip-remove-hover
+   they will be used automatically. Otherwise Bootstrap vars adapt to light/dark. */

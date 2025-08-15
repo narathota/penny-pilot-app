@@ -34,7 +34,6 @@ export async function fetchTransactionTypes() {
   const snapshot = await getDocs(colRef);
 
   return snapshot.docs.map((doc) => {
-    const data = doc.data() || {};
-    return { id: doc.id, name: data.name ?? doc.id };
+    return doc.data() || {};
   });
 }
