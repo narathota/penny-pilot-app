@@ -1,1 +1,58 @@
-.ProcessedDataComponent {}
+/* FILE: src/components/app/UploadDataComponent/ProcessedDataComponent/ProcessedDataComponent.module.css */
+
+.tabNav :global(.nav-link) {
+    cursor: pointer;
+  }
+  
+  .jsonPane {
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--pp-radius, .75rem);
+    background: var(--bs-body-bg);
+    box-shadow: var(--pp-shadow-sm, 0 4px 12px rgba(0,0,0,.06));
+    padding: .5rem;
+    margin-top: .5rem;
+  }
+  
+  .jsonPre {
+    white-space: pre-wrap;
+    max-height: 340px;  /* scrollable preview */
+    overflow: auto;
+    margin: 0;
+    font-family: var(--pp-font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace);
+  }
+  
+  /* Collapsible sample */
+  .collapseCard {
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--pp-radius, .75rem);
+    background: var(--bs-body-bg);
+    margin-top: .75rem;
+    margin-bottom: .5rem;
+    box-shadow: var(--pp-shadow-sm, 0 4px 12px rgba(0,0,0,.06));
+  }
+  
+  .collapseHeader {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .5rem .75rem;
+    background: var(--bs-tertiary-bg);
+    border: none;
+    border-radius: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  
+  .collapseBody {
+    padding: .5rem .75rem .75rem;
+  }
+  
+  .chevron {
+    display: inline-block;
+    transition: transform .15s ease;
+  }
+  .chevron[data-open="1"] {
+    transform: rotate(90deg);
+  }
+  

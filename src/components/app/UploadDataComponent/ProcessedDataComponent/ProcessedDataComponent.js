@@ -1,5 +1,6 @@
-// FILE: src/components/app/UploadDataComponent/ProcessedDataComponent.jsx
+// FILE: src/components/app/UploadDataComponent/ProcessedDataComponent/ProcessedDataComponent.jsx
 import React from "react";
+import styles from "./ProcessedDataComponent.module.css";
 
 export default function ProcessedDataComponent({
   processed,
@@ -8,6 +9,7 @@ export default function ProcessedDataComponent({
   onMapAccount,
   loadingTypes,
   jsonSummary,
+  jsonExamples,
   canWrite,
   onWrite,
   writeState,
@@ -20,6 +22,12 @@ export default function ProcessedDataComponent({
       <div className="card shadow-sm my-3">
         <div className="card-header fw-semibold">Accounts ({counts.accounts})</div>
         <div className="card-body">
+          {!loadingTypes && accountTypes.length === 0 && (
+            <div className="alert alert-warning py-2 small">
+              No system account types found. Check collection <code>pp_account_type</code> and Firestore rules.
+            </div>
+          )}
+
           {accounts.length === 0 ? (
             <div className="text-muted">No accounts detected.</div>
           ) : (
@@ -29,7 +37,7 @@ export default function ProcessedDataComponent({
                   <tr>
                     <th>Account name</th>
                     <th>Currency</th>
-                    <th style={{ width: 340 }}>Map to system account type</th>
+                    <th style={{ width: 360 }}>Map to system account type</th>
                     <th>Description</th>
                   </tr>
                 </thead>
@@ -52,9 +60,7 @@ export default function ProcessedDataComponent({
                           >
                             <option value="">{loadingTypes ? "Loading..." : "Select a type…"}</option>
                             {accountTypes.map((t) => (
-                              <option key={t.id} value={t.id}>
-                                {t.name}
-                              </option>
+                              <option key={t.id} value={t.id}>{t.name}</option>
                             ))}
                           </select>
                         </td>
@@ -136,13 +142,13 @@ export default function ProcessedDataComponent({
         </div>
       </div>
 
-      {/* JSON summary */}
+      {/* JSON summary (tabs + collapsible samples + scrollable previews) */}
       <div className="card shadow-sm mb-3">
-        <div className="card-header fw-semibold">JSON summary (preview)</div>
+        <div className="card-header d-flex align-items-center justify-content-between">
+          <span className="fw-semibold">JSON summary (preview)</span>
+        </div>
         <div className="card-body">
-          <pre className="small mb-0" style={{ whiteSpace: "pre-wrap" }}>
-            {JSON.stringify(jsonSummary, null, 2)}
-          </pre>
+          <SummaryTabs jsonSummary={jsonSummary} jsonExamples={jsonExamples} />
         </div>
       </div>
 
@@ -170,5 +176,157 @@ function TagTree({ roots }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+function SummaryTabs({ jsonSummary, jsonExamples }) {
+  const [tab, setTab] = React.useState("accounts");
+  const ua = jsonSummary?.user_accounts || [];
+  const ut = jsonSummary?.user_tags || [];
+  const ux = jsonSummary?.user_transactions || [];
+
+  const exampleAccounts = jsonExamples?.user_accounts || null;
+  const exampleTags = jsonExamples?.user_tags || null;
+  const exampleTx = jsonExamples?.user_transactions || null;
+
+  const PREVIEW = 200; // first N rows per tab
+
+  const dataFor = (key) => {
+    switch (key) {
+      case "accounts": return { all: ua, show: ua.slice(0, PREVIEW), example: exampleAccounts };
+      case "tags": return { all: ut, show: ut.slice(0, PREVIEW), example: exampleTags };
+      case "transactions": return { all: ux, show: ux.slice(0, PREVIEW), example: exampleTx };
+      default: return { all: [], show: [], example: null };
+    }
+  };
+  const { all, show, example } = dataFor(tab);
+
+  return (
+    <div>
+      <div className={`nav nav-tabs ${styles.tabNav}`} role="tablist">
+        <button className={`nav-link ${tab === "accounts" ? "active" : ""}`} onClick={() => setTab("accounts")} type="button">
+          user_accounts <span className="text-muted">({ua.length})</span>
+        </button>
+        <button className={`nav-link ${tab === "tags" ? "active" : ""}`} onClick={() => setTab("tags")} type="button">
+          user_tags <span className="text-muted">({ut.length})</span>
+        </button>
+        <button className={`nav-link ${tab === "transactions" ? "active" : ""}`} onClick={() => setTab("transactions")} type="button">
+          user_transactions <span className="text-muted">({ux.length})</span>
+        </button>
+      </div>
+
+      {/* Collapsible: full object example (no id fields) */}
+      <CollapsibleSample
+        title="Sample document (full shape)"
+        json={example}
+        emptyText="No sample available."
+      />
+
+      {/* Scrollable preview of trimmed info */}
+      <div className={styles.jsonPane}>
+        <div className="d-flex justify-content-between small text-secondary mb-2">
+          <span>Showing {show.length} of {all.length}</span>
+        </div>
+        <JsonPretty className={`${styles.jsonPre} small mb-0`} value={show} />
+      </div>
+    </div>
+  );
+}
+
+function CollapsibleSample({ title, json, emptyText = "No content." }) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <div className={styles.collapseCard}>
+      <button
+        type="button"
+        className={styles.collapseHeader}
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-controls="sample-json"
+      >
+        <span className={styles.chevron} data-open={open ? "1" : "0"}>▸</span>
+        <span className="fw-semibold">{title}</span>
+        <span className="ms-auto small text-secondary">{open ? "Hide" : "Show"}</span>
+      </button>
+      {open && (
+        <div className={styles.collapseBody} id="sample-json">
+          {json ? (
+            <JsonPretty className={`${styles.jsonPre} small mb-0`} value={json} />
+          ) : (
+            <pre className={`${styles.jsonPre} small mb-0`}>{emptyText}</pre>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* JSON pretty renderer (DOM-based, no innerHTML)                      */
+/* ------------------------------------------------------------------ */
+
+function JsonPretty({ value, className = "" }) {
+  return (
+    <pre className={className}>
+      <JsonNode value={value} />
+    </pre>
+  );
+}
+
+function JsonNode({ value, depth = 0, isLast = true }) {
+  const indent = "  ".repeat(depth);
+  const nextIndent = "  ".repeat(depth + 1);
+
+  if (value === null) {
+    return <span className="jsonNull">null</span>;
+  }
+  const t = typeof value;
+  if (t === "string") {
+    return <span className="jsonString">{JSON.stringify(value)}</span>;
+  }
+  if (t === "number") {
+    return <span className="jsonNumber">{String(value)}</span>;
+  }
+  if (t === "boolean") {
+    return <span className="jsonBoolean">{value ? "true" : "false"}</span>;
+  }
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) return <span>[]</span>;
+    return (
+      <>
+        [{"\n"}
+        {value.map((v, i) => (
+          <React.Fragment key={i}>
+            {nextIndent}
+            <JsonNode value={v} depth={depth + 1} isLast={i === value.length - 1} />
+            {i === value.length - 1 ? "" : ","}
+            {"\n"}
+          </React.Fragment>
+        ))}
+        {indent}]
+      </>
+    );
+  }
+
+  // object
+  const keys = Object.keys(value || {});
+  if (keys.length === 0) return <span>{{} && "{}"}</span>; // show {}
+
+  return (
+    <>
+      {"{"}{"\n"}
+      {keys.map((k, i) => (
+        <React.Fragment key={k}>
+          {nextIndent}
+          <span className="jsonKey">{JSON.stringify(k)}</span>
+          {": "}
+          <JsonNode value={value[k]} depth={depth + 1} isLast={i === keys.length - 1} />
+          {i === keys.length - 1 ? "" : ","}
+          {"\n"}
+        </React.Fragment>
+      ))}
+      {indent}{"}"}
+    </>
   );
 }

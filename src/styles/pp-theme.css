@@ -240,3 +240,29 @@ footer { background-image: linear-gradient(180deg, transparent, rgba(0,0,0,.03))
 [data-bs-theme="dark"] *::-webkit-scrollbar-thumb {
   background: rgba(148,163,184,.35);
 }
+
+/* JSON styles */
+/* === Reusable JSON syntax highlight (global) ======================= */
+/* Used by JsonPretty renderer across the app */
+.jsonKey {
+  color: var(--pp-primary);
+  font-weight: 700;
+}
+
+.jsonString {
+  color: var(--pp-warning);
+}
+
+.jsonNumber {
+  color: var(--pp-info);
+}
+
+.jsonBoolean {
+  color: var(--pp-secondary);
+  font-weight: 600;
+}
+
+.jsonNull {
+  color: var(--bs-secondary-color);
+  font-style: italic;
+}
