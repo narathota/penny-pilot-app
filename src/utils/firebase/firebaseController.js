@@ -3,7 +3,7 @@ import {
   getAuth, setPersistence, browserLocalPersistence, GoogleAuthProvider,
   signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged,
 } from "firebase/auth";
-import { getFirestore, setDoc, doc, serverTimestamp } from "firebase/firestore";
+import { getFirestore, setDoc, getDoc, doc, serverTimestamp } from "firebase/firestore";
 
 let _app = null, _auth = null, _db = null;
 let _ready = false, _reason = "";
@@ -12,7 +12,7 @@ let _persistReady = null;
 function env(k) { return process.env[k]; }
 
 function validateEnv() {
-  const req = ["REACT_APP_FB_API_KEY","REACT_APP_FB_AUTH_DOMAIN","REACT_APP_FB_PROJECT_ID","REACT_APP_FB_APP_ID"];
+  const req = ["REACT_APP_FB_API_KEY", "REACT_APP_FB_AUTH_DOMAIN", "REACT_APP_FB_PROJECT_ID", "REACT_APP_FB_APP_ID"];
   const missing = req.filter(k => !env(k) || String(env(k)).trim() === "");
   if (missing.length) { _reason = `Missing env vars: ${missing.join(", ")}`; return false; }
   return true;
@@ -59,7 +59,7 @@ function initIfNeeded() {
   }
 }
 
-async function waitPersistence() { try { if (_persistReady) await _persistReady; } catch {} }
+async function waitPersistence() { try { if (_persistReady) await _persistReady; } catch { } }
 
 export function getFirebase() { return { app: _app, auth: _auth, db: _db, ready: initIfNeeded(), reason: _reason }; }
 
@@ -105,7 +105,7 @@ export async function handleAuthRedirect() {
 
 export function onAuthChangedSafe(cb) {
   const { auth, ready } = getFirebase();
-  if (!ready) { setTimeout(() => cb(null), 0); return () => {}; }
+  if (!ready) { setTimeout(() => cb(null), 0); return () => { }; }
   return onAuthStateChanged(auth, cb);
 }
 
@@ -113,13 +113,43 @@ export async function logoutUser() { const { auth, ready } = getFirebase(); if (
 
 export async function writeAppUser(user) {
   const { db, ready } = getFirebase();
-  if (!ready || !user?.uid) return;
-  await setDoc(doc(db, "app_users", user.uid), {
-    uid: user.uid, email: user.email || null, displayName: user.displayName || null,
-    photoURL: user.photoURL || null, providerId: user.providerData?.[0]?.providerId || "google.com",
-    lastLoginAt: serverTimestamp(), createdAt: serverTimestamp(),
-  }, { merge: true });
+  if (!ready || !user) return;
+
+  // Use normalized email as the doc ID; fallback to uid if no email
+  const emailId = (user.email || "").trim().toLowerCase();
+  const docId = emailId || user.uid;
+  const ref = doc(db, "app_users", docId);
+
+  // Read once to decide whether to set signUpAt (one-time)
+  let shouldSetSignup = false;
+  try {
+    const snap = await getDoc(ref);
+    shouldSetSignup = !snap.exists() || !snap.data()?.signUpAt;
+  } catch {
+    // If read fails for any reason, be conservative and set signUpAt (it will just merge on create)
+    shouldSetSignup = true;
+  }
+
+  const base = {
+    uid: user.uid || null,
+    email: user.email || null,
+    displayName: user.displayName || null,
+    photoURL: user.photoURL || null,
+    providerId: user.providerData?.[0]?.providerId || "google.com",
+    lastLoginAt: serverTimestamp(),     // ALWAYS updates on login
+  };
+
+  const firstTime = shouldSetSignup
+    ? {
+        signUpAt: serverTimestamp(),    // ONE-TIME only
+        createdAt: serverTimestamp(),   // keep for backward-compat if you already use it
+      }
+    : {};
+
+  await setDoc(ref, { ...firstTime, ...base }, { merge: true });
 }
+
+
 
 export function isFirebaseReady() { return initIfNeeded(); }
 export function notReadyReason() { return _reason; }

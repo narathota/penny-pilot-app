@@ -69,7 +69,7 @@ export default function DataTable({
       </div>
 
       {/* Pagination Controls */}
-      <div className={styles.controls}>
+      <div className={`${styles.controls} mt-2`}>
         <div className="small text-secondary">
           {rows.length > 0 ? (
             <>Showing <strong>{start + 1}</strong>–<strong>{end}</strong> of <strong>{rows.length}</strong></>
@@ -78,8 +78,8 @@ export default function DataTable({
           )}
         </div>
 
-        <div className="d-flex align-items-center gap-2">
-          <label className="small text-secondary" style={{ minWidth: "3.5rem" }}>Rows</label>
+        <div className={`d-flex align-items-center gap-3 flex-nowrap ${styles.paginationGroup}`}>
+          <label className="small text-secondary mb-0" style={{ minWidth: "2.5rem" }}>Rows</label>
           <select
             className="form-select form-select-sm"
             value={rowsPerPage}
@@ -90,31 +90,25 @@ export default function DataTable({
             ))}
           </select>
 
-          <div className="btn-group btn-group-sm" role="group" aria-label="Pagination">
+          <div className="d-flex align-items-center gap-2 flex-nowrap">
             <button
               type="button"
-              className={`btn ${page === 0 ? "btn-outline-secondary" : "btn-primary"}`}
+              className={`btn btn-sm ${page === 0 ? "btn-outline-secondary" : "btn-primary"}`}
               onClick={handlePrev}
               disabled={page === 0}
               aria-label="Previous page"
-              title="Previous page"
             >
               ‹
             </button>
-            <button
-              type="button"
-              className="btn btn-outline-secondary disabled"
-              tabIndex={-1}
-            >
+            <span className="small text-secondary">
               Page {page + 1} / {totalPages}
-            </button>
+            </span>
             <button
               type="button"
-              className={`btn ${page >= totalPages - 1 ? "btn-outline-secondary" : "btn-primary"}`}
+              className={`btn btn-sm ${page >= totalPages - 1 ? "btn-outline-secondary" : "btn-primary"}`}
               onClick={handleNext}
               disabled={page >= totalPages - 1}
               aria-label="Next page"
-              title="Next page"
             >
               ›
             </button>

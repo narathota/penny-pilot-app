@@ -1,3 +1,9 @@
+/* Tag chip colors use app theme first, then Bootstrap as fallback
+   If pp-theme.css defines:
+     --pp-chip-bg, --pp-chip-fg, --pp-chip-border, --pp-chip-hover,
+     --pp-chip-remove, --pp-chip-remove-hover
+   they will be used automatically. Otherwise Bootstrap vars adapt to light/dark. */
+
 .cell {
   vertical-align: middle;
 }
@@ -11,11 +17,19 @@
 .tag {
   display: inline-flex;
   align-items: center;
-  gap: .35rem;
-  padding: .35rem .5rem;
-  background-color: var(--bs-secondary-bg);
-  color: var(--bs-body-color);
-  border: 1px solid var(--bs-border-color);
+  gap: .4rem;
+  padding: .35rem .6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background-color: var(--pp-chip-bg, var(--bs-secondary-bg));
+  color: var(--pp-chip-fg, var(--bs-body-color));
+  border: 1px solid var(--pp-chip-border, var(--bs-border-color));
+  line-height: 1;
+}
+
+.tag:hover {
+  background-color: var(--pp-chip-hover, var(--bs-tertiary-bg));
 }
 
 .tagText {
@@ -26,7 +40,7 @@
   appearance: none;
   border: none;
   background: transparent;
-  color: var(--bs-danger);
+  color: var(--pp-chip-remove, var(--bs-danger));
   padding: 0;
   line-height: 1;
   display: inline-flex;
@@ -35,44 +49,12 @@
 }
 
 .tagRemove:hover {
-  filter: brightness(1.1);
-}
-.cell {
-  vertical-align: middle;
+  color: var(--pp-chip-remove-hover, var(--bs-danger-text-emphasis));
+  filter: brightness(1.05);
 }
 
-.tagWrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .35rem;
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: .35rem;
-  padding: .35rem .5rem;
-  background-color: var(--bs-secondary-bg);
-  color: var(--bs-body-color);
-  border: 1px solid var(--bs-border-color);
-}
-
-.tagText {
-  line-height: 1;
-}
-
-.tagRemove {
-  appearance: none;
-  border: none;
-  background: transparent;
-  color: var(--bs-danger);
-  padding: 0;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.tagRemove:hover {
-  filter: brightness(1.1);
+.tagRemove:focus-visible {
+  outline: 2px solid var(--pp-chip-remove, var(--bs-danger));
+  outline-offset: 2px;
+  border-radius: 4px;
 }
