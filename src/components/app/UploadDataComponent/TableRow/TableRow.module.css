@@ -4,57 +4,62 @@
      --pp-chip-remove, --pp-chip-remove-hover
    they will be used automatically. Otherwise Bootstrap vars adapt to light/dark. */
 
-.cell {
-  vertical-align: middle;
-}
-
-.tagWrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .35rem;
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  padding: .35rem .6rem;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  background-color: var(--pp-chip-bg, var(--bs-secondary-bg));
-  color: var(--pp-chip-fg, var(--bs-body-color));
-  border: 1px solid var(--pp-chip-border, var(--bs-border-color));
-  line-height: 1;
-}
-
-.tag:hover {
-  background-color: var(--pp-chip-hover, var(--bs-tertiary-bg));
-}
-
-.tagText {
-  line-height: 1;
-}
-
-.tagRemove {
-  appearance: none;
-  border: none;
-  background: transparent;
-  color: var(--pp-chip-remove, var(--bs-danger));
-  padding: 0;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.tagRemove:hover {
-  color: var(--pp-chip-remove-hover, var(--bs-danger-text-emphasis));
-  filter: brightness(1.05);
-}
-
-.tagRemove:focus-visible {
-  outline: 2px solid var(--pp-chip-remove, var(--bs-danger));
-  outline-offset: 2px;
-  border-radius: 4px;
-}
+   .cell {
+    vertical-align: middle;
+  }
+  
+  .actions {
+    white-space: nowrap;
+  }
+  
+  .tagWrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+  }
+  
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .35rem .6rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background-color: var(--pp-chip-bg, var(--bs-secondary-bg));
+    color: var(--pp-chip-fg, var(--bs-body-color));
+    border: 1px solid var(--pp-chip-border, var(--bs-border-color));
+    line-height: 1;
+  }
+  
+  .tag:hover {
+    background-color: var(--pp-chip-hover, var(--bs-tertiary-bg));
+  }
+  
+  .tagText {
+    line-height: 1;
+  }
+  
+  .tagRemove {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--pp-chip-remove, var(--bs-danger));
+    padding: 0;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .tagRemove:hover {
+    color: var(--pp-chip-remove-hover, var(--bs-danger-text-emphasis));
+    filter: brightness(1.05);
+  }
+  
+  .tagRemove:focus-visible {
+    outline: 2px solid var(--pp-chip-remove, var(--bs-danger));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  
