@@ -1,3 +1,0 @@
-/* FILE: src/components/app/AppBody/AppBody.module.css */
-.card { box-shadow: var(--pp-shadow-sm); }
-.card:hover { box-shadow: var(--pp-shadow); }

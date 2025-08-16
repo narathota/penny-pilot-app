@@ -1,33 +1,51 @@
+// FILE: src/components/app/AppBody/AppBody.js
 import React from "react";
-import styles from "./AppBody.module.css";
+import { Outlet } from "react-router-dom";
+import AppNavbar from "../AppNavbar/AppNavbar";
+import AppSidebar from "../AppSidebar/AppSidebar";
+import AppFooter from "../AppFooter/AppFooter";
 
 export default function AppBody() {
   return (
-    <div className="p-3 p-lg-4">
-      <div className="row g-3">
-        <div className="col-12 col-lg-8">
-          <div className={`card ${styles.card}`}>
-            <div className="card-body">
-              <h2 className="h5 fw-bold mb-2">Welcome to your dashboard</h2>
-              <p className="text-secondary mb-0">
-                Placeholder content. We’ll add Insights, Budgets, and Forecast widgets here.
-              </p>
+    <div className="d-flex flex-column min-vh-100 bg-body text-body">
+      <AppNavbar />
+
+      <div className="flex-grow-1">
+        <div className="container-fluid">
+          <div className="row">
+            {/* Static sidebar on ≥lg */}
+            <div className="d-none d-lg-block col-lg-auto p-0">
+              <AppSidebar />
             </div>
-          </div>
-        </div>
-        <div className="col-12 col-lg-4">
-          <div className={`card ${styles.card}`}>
-            <div className="card-body">
-              <h3 className="h6 fw-bold mb-2">Next steps</h3>
-              <ul className="mb-0">
-                <li>Connect an account</li>
-                <li>Upload a CSV</li>
-                <li>Create your first budget</li>
-              </ul>
+
+            {/* Main content */}
+            <div className="col p-0">
+              <div className="p-3 p-lg-4">
+                <Outlet />
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Offcanvas sidebar for <lg (opened by the hamburger) */}
+      <div
+        className="offcanvas offcanvas-start"
+        tabIndex="-1"
+        id="appSidebar"
+        aria-labelledby="appSidebarLabel"
+      >
+        <div className="offcanvas-header">
+          <h5 className="offcanvas-title" id="appSidebarLabel">Navigation</h5>
+          <button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close" />
+        </div>
+        <div className="offcanvas-body p-0">
+          {/* Tell AppSidebar it's inside an offcanvas */}
+          <AppSidebar insideOffcanvas />
+        </div>
+      </div>
+
+      <AppFooter />
     </div>
   );
 }
