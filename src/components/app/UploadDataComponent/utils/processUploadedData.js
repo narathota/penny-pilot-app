@@ -2,6 +2,16 @@
 import { slugify } from "../../../../utils/firebase/collections";
 import { splitTagPathsCell as splitPaths } from "./tagUtils";
 
+// Batch helper: iterates rows in slices to reduce peak work per tick
+function forEachRow(rows, cb, batchSize = 1000) {
+  if (!Array.isArray(rows) || rows.length === 0) return;
+  const n = rows.length;
+  for (let start = 0; start < n; start += batchSize) {
+    const end = Math.min(n, start + batchSize);
+    for (let i = start; i < end; i++) cb(rows[i], i);
+  }
+}
+
 // Build column index map from headers
 const idxMap = (headers) => {
   const m = new Map();
@@ -31,9 +41,9 @@ export function processUploadedData({ headers, rows, user }) {
 
   // ---------- ACCOUNTS ----------
   const accountMap = new Map(); // slug -> { name, slug, currencyCode }
-  for (const r of rows) {
+  forEachRow(rows, (r) => {
     const name = (r?.[idx.account] ?? "").toString().trim();
-    if (!name) continue;
+    if (!name) return;
     const slug = slugify(name);
     const currencyCode = (r?.[idx.currency] ?? "").toString().trim().toUpperCase();
     if (!accountMap.has(slug)) {
@@ -41,7 +51,7 @@ export function processUploadedData({ headers, rows, user }) {
     } else if (currencyCode && !accountMap.get(slug).currencyCode) {
       accountMap.get(slug).currencyCode = currencyCode;
     }
-  }
+  });
   const accounts = Array.from(accountMap.values());
 
   // ---------- TAGS (unique nodes, preserve hierarchy) ----------
@@ -68,7 +78,7 @@ export function processUploadedData({ headers, rows, user }) {
     parent.children.add(child.slug);
   };
 
-  for (const r of rows) {
+  forEachRow(rows, (r) => {
     const raw = r?.[idx.tags];
     for (const path of splitPathsSafe(raw)) {
       const segs = segments(path);
@@ -77,7 +87,7 @@ export function processUploadedData({ headers, rows, user }) {
         if (i > 0) linkParent(segs[i], segs[i - 1]);
       }
     }
-  }
+  });
 
   // finalize nodes (ancestors/depth) and tree
   for (const node of tagNodeBySlug.values()) {
@@ -102,8 +112,7 @@ export function processUploadedData({ headers, rows, user }) {
 
   // ---------- TRANSACTIONS ----------
   const transactions = [];
-  for (let i = 0; i < rows.length; i++) {
-    const r = rows[i];
+  forEachRow(rows, (r, i) => {
     const id = (r?.[idx.id] ?? "").toString().trim() || undefined;
     const date = toISO((r?.[idx.date] ?? "").toString().trim());
     const description = (r?.[idx.desc] ?? "").toString().trim();
@@ -136,7 +145,7 @@ export function processUploadedData({ headers, rows, user }) {
       source: "csv-upload",
       sourceRowIndex: i,
     });
-  }
+  });
 
   return {
     accounts,
@@ -163,11 +172,23 @@ function toISO(v) {
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
-function expand(slug, map) {
+
+// Cycle-safe expand with depth guard
+function expand(slug, map, visited = new Set(), depth = 0, maxDepth = 5000) {
+  if (!slug || depth > maxDepth) return null;
+  if (visited.has(slug)) return null; // cycle guard
+
   const node = map.get(slug);
   if (!node) return null;
-  return {
-    ...node,
-    children: (node.children || []).map((c) => expand(c, map)).filter(Boolean),
-  };
+
+  visited.add(slug);
+  const kids = Array.isArray(node.children) ? node.children : [];
+  const outChildren = [];
+  for (let i = 0; i < kids.length; i++) {
+    const child = kids[i];
+    const expanded = expand(child, map, visited, depth + 1, maxDepth);
+    if (expanded) outChildren.push(expanded);
+  }
+
+  return { ...node, children: outChildren };
 }

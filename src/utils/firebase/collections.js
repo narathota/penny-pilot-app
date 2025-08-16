@@ -8,7 +8,8 @@ export const COLLECTIONS = {
     userAccounts: "user_accounts",           // per-user accounts
     userTags: "user_tags",                   // per-user unique tags with hierarchy
     userTransactions: "user_transactions",   // per-user transactions
-    systemAppUsers: "pp_app_users",     // global: system app users
+    userRules: "user_rules",                // per-user rules
+    systemAppUsers: "pp_app_users",         // global: system app users
     systemAccountTypes: "pp_account_types",   // global: account types (id, name, desc)
     systemTransactionTypes: "pp_transaction_types", // global: txn types (name, symbol)
     systemCurrencyList: "pp_currency_list", // global: app currency list

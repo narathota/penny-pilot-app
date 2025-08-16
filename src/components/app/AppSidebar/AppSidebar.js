@@ -3,6 +3,7 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faGauge,            // Dashboard
+  faArrowsLeftRight,  // Transactions
   faChartLine,        // Insights
   faPiggyBank,        // Budgets
   faChartArea,        // Forecast
@@ -11,21 +12,22 @@ import {
   faTags,             // Tags
   faFileArrowUp,      // Upload Data
   faGear,             // Settings
-  faDatabase,             // DataManagementAdminPage
+  faDatabase,         // Data Management
 } from "@fortawesome/free-solid-svg-icons";
 import styles from "./AppSidebar.module.css";
 
 const items = [
-  { to: "/app/dashboard", label: "Dashboard",   icon: faGauge },
-  { to: "/app/insights",  label: "Insights",    icon: faChartLine },
-  { to: "/app/budgets",   label: "Budgets",     icon: faPiggyBank },
-  { to: "/app/forecast",  label: "Forecast",    icon: faChartArea },
-  { to: "/app/rules",     label: "Rules",       icon: faListCheck },
-  { to: "/app/accounts",  label: "Accounts",    icon: faBuildingColumns },
-  { to: "/app/tags",      label: "Tags",        icon: faTags },
-  { to: "/app/upload",    label: "Upload Data", icon: faFileArrowUp },
-  { to: "/app/settings",  label: "Settings",    icon: faGear },
-  { to: "/app/datamgt",  label: "Data Management",    icon: faDatabase },
+  { to: "/app/dashboard",   label: "Dashboard",      icon: faGauge },
+  { to: "/app/transactions",label: "Transactions",   icon: faArrowsLeftRight }, // 👈 NEW, right after Dashboard
+  { to: "/app/insights",    label: "Insights",       icon: faChartLine },
+  { to: "/app/budgets",     label: "Budgets",        icon: faPiggyBank },
+  { to: "/app/forecast",    label: "Forecast",       icon: faChartArea },
+  { to: "/app/rules",       label: "Rules",          icon: faListCheck },
+  { to: "/app/accounts",    label: "Accounts",       icon: faBuildingColumns },
+  { to: "/app/tags",        label: "Tags",           icon: faTags },
+  { to: "/app/upload",      label: "Upload Data",    icon: faFileArrowUp },
+  { to: "/app/settings",    label: "Settings",       icon: faGear },
+  { to: "/app/datamgt",     label: "Data Management",icon: faDatabase },
 ];
 
 export default function AppSidebar({ insideOffcanvas = false }) {

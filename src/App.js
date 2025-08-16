@@ -17,6 +17,7 @@ import ForecastPage from "./components/app/pages/ForecastPage";
 import RulesPage from "./components/app/pages/RulesPage";
 import AccountsPage from "./components/app/pages/AccountsPage";
 import TagsPage from "./components/app/pages/TagsPage";
+import TransactionsPage from "./components/app/pages/TransactionsPage";
 import SettingsPage from "./components/app/pages/SettingsPage";
 import DashboardHome from "./components/app/pages/DashboardHome";
 import ProfileManagementPage from "./components/app/pages/ProfileManagementPage";
@@ -48,6 +49,7 @@ export default function App() {
               <Route path="rules" element={<RulesPage />} />
               <Route path="accounts" element={<AccountsPage />} />
               <Route path="tags" element={<TagsPage />} />
+              <Route path="transactions" element={<TransactionsPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="profile" element={<ProfileManagementPage />} />
               <Route path="upload" element={<UploadDataPage />} />
