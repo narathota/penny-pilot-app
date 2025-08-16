@@ -1,9 +1,9 @@
 import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Spinner from "../../components/common/Spinner/Spinner";
 
-export default function ProtectedRoute({ children }) {
+export default function ProtectedRoute() {
   const { user, initializing } = useAuth();
   const location = useLocation();
 
@@ -18,5 +18,7 @@ export default function ProtectedRoute({ children }) {
       />
     );
   }
-  return children;
+
+  // IMPORTANT: render children routes via <Outlet /> for the wrapper-route pattern
+  return <Outlet />;
 }

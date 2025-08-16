@@ -1,6 +1,5 @@
 import React from "react";
-import AppBody from "../AppBody/AppBody";
-
+import DashboardBaseComponent from "../bases/DashboardBaseComponent/DashboardBaseComponent";
 export default function DashboardHome() {
-  return <AppBody />;
+  return <DashboardBaseComponent />;
 }
